@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 import { ConeGeometry } from 'three';
+import { MapControls } from 'three/addons/controls/MapControls.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { ParametricGeometry } from 'three/addons/geometries/ParametricGeometry.js';
 import { seededRandom } from 'three/src/math/MathUtils';
 import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
@@ -89,7 +91,6 @@ const createTorus = (size = basicSize, size2 = basicSize / 2, color = 0xffffff) 
     const solid = genSolid(geometry, color)
     return solid
 }
-
 const createLatheGeometry = (size = basicSize, param, color = 0xffffff) => {
     const points = [];
     for (let i = 0; i < 10; ++i)
@@ -153,7 +154,7 @@ const createPolyhedron = (size = basicSize, color = 0xffffff) => {
 }
 
 const addObject = (x, y, object) => {
-    objects.push(object)
+    objects1.push(object)
 }
 
 
@@ -284,6 +285,7 @@ const genCross = (size, opacity) => {
     const line2 = new THREE.Line(geometry2, lineMaterial)
     cross.add(line2)
     return cross
+
 }
 
 const genFloor = () => {
@@ -394,17 +396,73 @@ const rotateStep = (objects, seed = 0.5) => {
     }
 }
 
+const transformObjects = (objects, x, y, z) => {
+    for (let i = 0; i < objects.length; i++)
+    {
+        const object = objects[i]
+        object.position.x += x
+        object.position.y += y
+        object.position.z += z
+    }
+}
+
 const canvas = document.querySelector('#c');
 const renderer = new THREE.WebGLRenderer({ antialias: true, canvas });
 renderer.setSize(window.innerWidth, window.innerHeight)
 
-const objects = await genObjects()
-const scene = genScene(objects)
-const camera = initCamera(THREE.PerspectiveCamera)
+
+const height = window.innerHeight
+const width = window.innerWidth / 2
+
+const objects1 = await genObjects()
+// transformObjects(objects1, -16, 0, 0)
+const scene1 = genScene(objects1)
+
+const objects2 = await genObjects()
+// transformObjects(objects2, 0, 0, 0)
+const scene2 = genScene(objects2)
+
+const camera1 = initCamera(THREE.PerspectiveCamera)
+camera1.position.x = 20
+const controls1 = new OrbitControls(camera1, renderer.domElement);
+controls1.update()
+// camera1.position.y = 100
+const camera2 = initCamera(THREE.OrthographicCamera)
+const controls2 = new MapControls(camera2, renderer.domElement);
+// camera2.position.x = -15
+controls2.enableDamping = true;
+controls2.update()
+
+
+
+controls1.enabled = true
+controls2.enabled = false
 
 const render = () => {
-    rotateStep(objects, 0.5)
-    renderer.render(scene, camera)
+    renderer.setScissorTest(true);
+
+    rotateStep(objects1, 0.5)
+    rotateStep(objects2, 1.5)
+
+    renderer.setScissor(0, 0, width, height)
+    controls1.update()
+    renderer.render(scene1, camera1)
+
+    renderer.setScissor(width, 0, width, height)
+    controls2.update()
+    renderer.render(scene2, camera2)
+
     requestAnimationFrame(render)
 }
 requestAnimationFrame(render)
+
+const switchControls = (e) => {
+    const code = e.keyCode;
+    if (code == 32)
+    {
+        controls1.enabled = !controls1.enabled
+        controls2.enabled = !controls2.enabled
+    }
+
+}
+window.addEventListener('keydown', switchControls, false);
