@@ -14,6 +14,7 @@ const devArray = devFiles.map((file) => {
 }).filter(Boolean);
 devArray.sort((a, b) => (a.week - b.week) || (a.ex - b.ex));
 
+const ghRepoLink = "https://github.com/8gaU8/3d-vis-practical-works/tree/main/docs/";
 
 // generate routing js `main.js` 
 const mainJsContent = `document.addEventListener("DOMContentLoaded", () => {
@@ -25,7 +26,12 @@ const mainJsContent = `document.addEventListener("DOMContentLoaded", () => {
         const a = document.createElement("a");
         a.href = \`week\${week}/ex\${ex}.html\`;
         a.textContent = \`Week \${week} - Exercise \${ex}\`;
+        const ghLink = document.createElement("a");
+        ghLink.href = \`${ghRepoLink}week\${week}/ex\${ex}.html\`;
+        ghLink.textContent = " (Link for HTML code)";
+        ghLink.style.color = "gray";
         li.appendChild(a);
+        li.appendChild(ghLink);
         listContainer.appendChild(li);
     });
 });
