@@ -1,0 +1,19 @@
+{
+  "name": "3d-vis-practical-works",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "build": "npx rollup -c"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "description": "",
+  "devDependencies": {
+    "glob": "^11.0.1",
+    "prettier": "^3.4.2",
+    "rollup": "^2.79.2",
+    "rollup-plugin-terser": "^7.0.2"
+  }
+}
