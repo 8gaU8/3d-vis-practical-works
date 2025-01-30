@@ -130,7 +130,7 @@ export default {
           if (fs.existsSync(file))
           {
             fs.unlinkSync(file);
-            console.log(`🗑️ delete: ${file}`);
+            console.log(`🗑️  delete: ${file}`);
           }
         });
       }
