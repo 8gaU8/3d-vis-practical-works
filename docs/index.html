@@ -6,33 +6,52 @@
     <title>Index of 3D XR Vis PW</title>
     <script type="module">
       document.addEventListener("DOMContentLoaded", () => {
+        const GITHUB_PAGES_URL =
+          "https://github.com/8gaU8/3d-vis-practical-works/tree/main/docs/";
         const exercises = [
+          {
+            week: "Shader",
+            ex: 1,
+            html: "/shader/shader_ex1.html",
+          },
+          {
+            week: "Shader",
+            ex: 2,
+            html: "/shader/shader_ex2.html",
+          },
           {
             week: 1,
             ex: 1,
+            html: "/week1/ex1.html",
           },
           {
             week: 1,
             ex: 2,
+            html: "/week1/ex2.html",
           },
           {
             week: 1,
             ex: 3,
+            html: "/week1/ex3.html",
           },
         ];
         const listContainer = document.getElementById("exercise-list");
 
-        exercises.forEach(({ week, ex }) => {
+        exercises.forEach(({ week, ex, html }) => {
           const li = document.createElement("li");
-          const a = document.createElement("a");
-          a.href = `week${week}/ex${ex}.html`;
-          a.textContent = `Week ${week} - Exercise ${ex}`;
+
+          const htmlLink = document.createElement("a");
+          htmlLink.href = `${html}`;
+
+          htmlLink.textContent = `Week ${week} - Exercise ${ex} (HTML)`;
+          li.appendChild(htmlLink);
+
           const ghLink = document.createElement("a");
-          ghLink.href = `https://github.com/8gaU8/3d-vis-practical-works/tree/main/docs/week${week}/ex${ex}.html`;
+          ghLink.href = `https://github.com/8gaU8/3d-vis-practical-works/tree/main/docs//${html}`;
           ghLink.textContent = " (Link for HTML code)";
           ghLink.style.color = "gray";
-          li.appendChild(a);
           li.appendChild(ghLink);
+
           listContainer.appendChild(li);
         });
       });
