@@ -47,7 +47,7 @@ const mainJsContent = `document.addEventListener("DOMContentLoaded", () => {
         const li = document.createElement("li");
 
         const htmlLink = document.createElement("a");
-        htmlLink.href = \`\${html}\`;
+        htmlLink.href = \`./\${html}\`;
 
         htmlLink.textContent = \`Week \${week} - Exercise \${ex} (HTML)\`;
         li.appendChild(htmlLink);
