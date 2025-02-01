@@ -2,7 +2,6 @@ import fs from "fs";
 import path from "path";
 import prettier from "prettier";
 import glob from "glob";
-import { exit } from "process";
 
 const docsDir = "docs";
 const devDir = "dev";
