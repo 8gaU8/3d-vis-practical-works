@@ -2,12 +2,13 @@ import fs from "fs";
 import path from "path";
 import prettier from "prettier";
 import glob from "glob";
+import { exit } from "process";
 
 const docsDir = "docs";
 const devDir = "dev";
 
 // generate `exercises` array dynamically from `exercisesDir`
-const devFiles = glob.sync(`${devDir}/week*/ex*.html`);
+const devFiles = glob.sync(`${devDir}/*/*.html`);
 const devArray = devFiles.map((file) => {
   const match = file.match(/week(\d+)\/ex(\d+)\.html$/);
   return match ? { week: Number(match[1]), ex: Number(match[2]) } : null;
@@ -16,22 +17,49 @@ devArray.sort((a, b) => (a.week - b.week) || (a.ex - b.ex));
 
 const ghRepoLink = "https://github.com/8gaU8/3d-vis-practical-works/tree/main/docs/";
 
-// generate routing js `main.js` 
+// `dev/` 以下の `.html` ファイルをすべてスキャン
+const exerciseFiles = glob.sync(`${devDir}/**/*.html`);
+const exercises = exerciseFiles.map((file) => {
+  const match = file.match(/week(\d+)\/ex(\d+)\.html$/) || file.match(/shader\/shader_ex(\d+)\.html$/);
+
+  if (!match) return null;
+  console.log(match)
+
+  return {
+    week: match[2] ? Number(match[1]) : "Shader",  
+    ex: Number(match[2] || match[1]), 
+    html: `/${file.replace(`${devDir}/`, "")}`,
+  };
+}).filter(Boolean);
+
+// **week, ex の順にソート**
+exercises.sort((a, b) => {
+  if (a.week === "Shader") return -1;  // Shader を後ろに配置
+  if (b.week === "Shader") return 1;
+  return (a.week - b.week) || (a.ex - b.ex);
+});
+
+// `main.js` の内容を生成
 const mainJsContent = `document.addEventListener("DOMContentLoaded", () => {
-    const exercises = ${JSON.stringify(devArray, null, 2)};
+    const GITHUB_PAGES_URL = "${ghRepoLink}";
+    const exercises = ${JSON.stringify(exercises, null, 2)};
     const listContainer = document.getElementById("exercise-list");
 
-    exercises.forEach(({ week, ex }) => {
+    exercises.forEach(({ week, ex, html}) => {
         const li = document.createElement("li");
-        const a = document.createElement("a");
-        a.href = \`week\${week}/ex\${ex}.html\`;
-        a.textContent = \`Week \${week} - Exercise \${ex}\`;
+
+        const htmlLink = document.createElement("a");
+        htmlLink.href = \`\${html}\`;
+
+        htmlLink.textContent = \`Week \${week} - Exercise \${ex} (HTML)\`;
+        li.appendChild(htmlLink);
+
         const ghLink = document.createElement("a");
-        ghLink.href = \`${ghRepoLink}week\${week}/ex\${ex}.html\`;
+        ghLink.href = \`${ghRepoLink}/\${html}\`;
         ghLink.textContent = " (Link for HTML code)";
         ghLink.style.color = "gray";
-        li.appendChild(a);
         li.appendChild(ghLink);
+
         listContainer.appendChild(li);
     });
 });
@@ -86,11 +114,13 @@ export default {
         console.log("✅ `index.html` build complete");
 
         // embed `ex*.js` into `ex*.html` and save to `docs/`
-        const htmlFiles = glob.sync(`${devDir}/week*/ex*.html`);
-        for (const htmlFile of htmlFiles)
+        // const htmlFiles = glob.sync(`${devDir}/week*/ex*.html`);
+        for (const htmlFile of exerciseFiles)
         {
           const jsFile = htmlFile.replace(".html", ".js");
-          const outputHtmlFile = path.join(docsDir, htmlFile.replace(`${devDir}/`, ""));
+          // const outputHtmlFile = path.join(docsDir, htmlFile.replace(`${devDir}/`, ""));
+          const outputHtmlFile = `${docsDir}/${htmlFile.replace(`${devDir}/`, "")}`;
+
 
           // Load `ex*.html`
           let htmlContent = fs.readFileSync(htmlFile, "utf8");
