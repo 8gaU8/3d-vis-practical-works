@@ -22,7 +22,6 @@ const exercises = exerciseFiles.map((file) => {
   const match = file.match(/week(\d+)\/ex(\d+)\.html$/) || file.match(/shader\/shader_ex(\d+)\.html$/);
 
   if (!match) return null;
-  console.log(match)
 
   return {
     week: match[2] ? Number(match[1]) : "Shader",  
