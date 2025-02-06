@@ -5,6 +5,7 @@ import glob from "glob";
 
 const docsDir = "docs";
 const devDir = "dev";
+const mainJs = "main.js";
 
 // generate `exercises` array dynamically from `exercisesDir`
 const devFiles = glob.sync(`${devDir}/*/*.html`);
@@ -24,7 +25,7 @@ const exercises = exerciseFiles.map((file) => {
   if (!match) return null;
 
   return {
-    week: match[2] ? Number(match[1]) : "Shader",  
+    week: match[2] ? `Week ${Number(match[1])}` : "Shader",  
     ex: Number(match[2] || match[1]), 
     html: `/${file.replace(`${devDir}/`, "")}`,
   };
@@ -42,14 +43,20 @@ const mainJsContent = `document.addEventListener("DOMContentLoaded", () => {
     const GITHUB_PAGES_URL = "${ghRepoLink}";
     const exercises = ${JSON.stringify(exercises, null, 2)};
     const listContainer = document.getElementById("exercise-list");
-
+    let prevHeader = null;
     exercises.forEach(({ week, ex, html}) => {
         const li = document.createElement("li");
+        if (prevHeader !== week){
+            const header = document.createElement("h2");
+            header.textContent = week;
+            listContainer.appendChild(header);
+            prevHeader = week;
+        }
 
         const htmlLink = document.createElement("a");
         htmlLink.href = \`./\${html}\`;
 
-        htmlLink.textContent = \`Week \${week} - Exercise \${ex} (HTML)\`;
+        htmlLink.textContent = \`\${week} - Exercise \${ex} (HTML)\`;
         li.appendChild(htmlLink);
 
         const ghLink = document.createElement("a");
@@ -57,20 +64,19 @@ const mainJsContent = `document.addEventListener("DOMContentLoaded", () => {
         ghLink.textContent = " (Link for HTML code)";
         ghLink.style.color = "gray";
         li.appendChild(ghLink);
-
         listContainer.appendChild(li);
     });
 });
 `;
 
 // const mainJsPath = path.join("main.js");
-fs.writeFileSync('./main.js', mainJsContent);
-console.log("✅ `main.js` was generated");
+fs.writeFileSync(mainJs, mainJsContent);
+console.log(`✅ "${mainJs}" was generated`);
 
 
 
 export default {
-  input: "main.js",
+  input: mainJs,
   output: {
     format: "es",
     file: `${docsDir}/bundle.js`
@@ -96,11 +102,11 @@ export default {
 
         // index.html for routing
         let indexHtml = fs.readFileSync("index.html", "utf8");
-        const mainJsCode = fs.readFileSync("main.js", "utf8");
+        const mainJsCode = fs.readFileSync(mainJs, "utf8");
 
         // Embed `main.js` into `index.html`
         indexHtml = indexHtml.replace(
-          `<script type="module" src="./main.js"></script>`,
+          `<script type="module" src="./${mainJs}"></script>`,
           `<script type="module">\n${mainJsCode}\n</script>`
         );
 
@@ -151,8 +157,7 @@ export default {
         console.log("🎉 completed")
 
         const bundleJsPath = path.join(docsDir, 'bundle.js');
-        const mainJsPath = path.join('main.js');
-        const filesToDelete = [bundleJsPath, mainJsPath];
+        const filesToDelete = [bundleJsPath, mainJs];
 
         filesToDelete.forEach((file) => {
           if (fs.existsSync(file))
