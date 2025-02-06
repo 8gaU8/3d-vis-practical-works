@@ -20,30 +20,41 @@
             html: "/shader/shader_ex2.html",
           },
           {
-            week: 1,
+            week: "Shader",
+            ex: 3,
+            html: "/shader/shader_ex3.html",
+          },
+          {
+            week: "Week 1",
             ex: 1,
             html: "/week1/ex1.html",
           },
           {
-            week: 1,
+            week: "Week 1",
             ex: 2,
             html: "/week1/ex2.html",
           },
           {
-            week: 1,
+            week: "Week 1",
             ex: 3,
             html: "/week1/ex3.html",
           },
         ];
         const listContainer = document.getElementById("exercise-list");
-
+        let prevHeader = null;
         exercises.forEach(({ week, ex, html }) => {
           const li = document.createElement("li");
+          if (prevHeader !== week) {
+            const header = document.createElement("h2");
+            header.textContent = week;
+            listContainer.appendChild(header);
+            prevHeader = week;
+          }
 
           const htmlLink = document.createElement("a");
           htmlLink.href = `./${html}`;
 
-          htmlLink.textContent = `Week ${week} - Exercise ${ex} (HTML)`;
+          htmlLink.textContent = `${week} - Exercise ${ex} (HTML)`;
           li.appendChild(htmlLink);
 
           const ghLink = document.createElement("a");
@@ -51,7 +62,6 @@
           ghLink.textContent = " (Link for HTML code)";
           ghLink.style.color = "gray";
           li.appendChild(ghLink);
-
           listContainer.appendChild(li);
         });
       });

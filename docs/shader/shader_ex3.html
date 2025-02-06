@@ -18,29 +18,35 @@
 
     <script id="vertexShader" type="x-shader/x-vertex">
       uniform float time;
-      uniform vec2 resolution;
-      void main()	{
-          gl_Position = vec4( position, 1.0 );
+      varying vec3 myColor;
+      void main()
+      {
+          myColor = vec3(
+            (0.5 + position.x),
+            (0.5 + position.y),
+            1.0
+          );
+
+          gl_Position = (
+            projectionMatrix
+            * modelViewMatrix
+            * vec4 (
+              position.x + sin(position.y*30.0) * cos(time) / 10.0,
+              position.y,
+              position.z + cos(position.x*30.0) * cos(time) / 10.0,
+              1.0
+            )
+          );
       }
     </script>
 
-    <script id="fragmentShaderRWB" type="x-shader/x-fragment">
+    <script id="fragmentShader" type="x-shader/x-fragment">
       uniform float time;
-      uniform vec2 resolution;
-      void main()	{
-        float modx40 = mod(time + gl_FragCoord.x, 40.);
-        float mody40 = mod(time + gl_FragCoord.y, 40.);
+      varying vec3 myColor;
 
-        if(modx40 > 0. && modx40 < 10. && mody40 > 0. && mody40 < 10.){
-          gl_FragColor = vec4(1., 1., 1., 1.);
-          return;
-        } else if(modx40 > 20. && modx40 < 30. && mody40 > 20. && mody40 < 30.){
-          gl_FragColor = vec4(1., 0., 0., 1.);
-          return;
-        } else {
-          gl_FragColor = vec4(0., 0., 0., 1.);
-          return;
-        }
+      void main()
+      {
+          gl_FragColor = vec4(myColor, 1.0);
       }
     </script>
 
@@ -59,70 +65,71 @@
 
     <script type="module">
       import * as THREE from "three";
+      import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
       var container;
-      var camera, scene, renderer;
-      var uniforms; // variables for shader. these will be sent to the rendering pipeline
-      var material, mesh;
-      var mouseX = 0,
-        mouseY = 0,
-        lat = 0,
-        lon = 0,
-        phy = 0,
-        theta = 0;
+      var camera, scene, renderer, controls;
+      var uniforms, material, mesh;
 
       var windowHalfX = window.innerWidth / 2;
       var windowHalfY = window.innerHeight / 2;
 
-      init();
       var startTime = Date.now();
+
+      init();
       animate();
 
       function init() {
         container = document.getElementById("container");
-
-        camera = new THREE.Camera();
-        camera.position.z = 1;
         scene = new THREE.Scene();
 
         uniforms = {
-          // data to be sent to the rendering pipeline
-          time: { type: "f", value: 1.0 }, //
-          resolution: { type: "v2", value: new THREE.Vector2() }, // 'v2' means 2D Vector
+          time: { type: "f", value: 1.0 },
         };
 
         material = new THREE.ShaderMaterial({
           uniforms: uniforms,
           vertexShader: document.getElementById("vertexShader").textContent,
-          fragmentShader:
-            document.getElementById("fragmentShaderRWB").textContent,
+          fragmentShader: document.getElementById("fragmentShader").textContent,
         });
 
-        mesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), material);
+        var geometry = new THREE.PlaneGeometry(1, 1, 100, 100);
+
+        mesh = new THREE.Mesh(geometry, material);
+        mesh.material.side = THREE.DoubleSide;
+        mesh.rotation.x = Math.PI / 2.0;
+
         scene.add(mesh);
 
         renderer = new THREE.WebGLRenderer();
-        console.log(renderer.getContext());
-
         renderer.setPixelRatio(
           window.devicePixelRatio ? window.devicePixelRatio : 1,
         );
         container.appendChild(renderer.domElement);
 
-        uniforms.resolution.value.x = window.innerWidth;
-        uniforms.resolution.value.y = window.innerHeight;
+        camera = new THREE.PerspectiveCamera(
+          60,
+          window.innerWidth / window.innerHeight,
+          0.1,
+          200,
+        );
+        camera.position.set(0, 1, 2);
+
+        controls = new OrbitControls(camera, renderer.domElement);
+
         renderer.setSize(window.innerWidth, window.innerHeight);
       }
 
       function animate() {
         requestAnimationFrame(animate);
+        controls.update();
         render();
       }
 
       function render() {
         var elapsedMilliseconds = Date.now() - startTime;
         var elapsedSeconds = elapsedMilliseconds / 1000;
-        uniforms.time.value = 60 * elapsedSeconds;
+        uniforms.time.value = elapsedSeconds;
         renderer.render(scene, camera);
       }
     </script>
