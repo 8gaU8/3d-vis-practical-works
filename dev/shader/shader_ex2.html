@@ -18,7 +18,7 @@
         uniform float time;
         uniform vec2 resolution;
         void main()	{
-            gl_Position = vec4( position, 1.0 );
+            gl_Position = projectionMatrix * modelViewMatrix * vec4 (position, 1.0);
         }
   </script>
 
@@ -34,7 +34,7 @@
         }
 
         void main()	{
-          if (calcDist(40., 40.) < 10.){
+          if (calcDist(20., 20.) < 5.){
             gl_FragColor = vec4(1., 0., 0., 1.);
             return;
           }
@@ -56,13 +56,11 @@
 
   <script type="module">
     import * as THREE from 'three';
-
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    
     var container;
-    var camera, scene, renderer;
+    var camera, scene, renderer, controls;
     var uniforms, material, mesh;
-    var mouseX = 0, mouseY = 0,
-      lat = 0, lon = 0, phy = 0, theta = 0;
-
     var windowHalfX = window.innerWidth / 2;
     var windowHalfY = window.innerHeight / 2;
 
@@ -70,12 +68,8 @@
     var startTime = Date.now();
     animate();
 
-    function init()
-    {
+    function init() {
       container = document.getElementById('container');
-
-      camera = new THREE.Camera();
-      camera.position.z = 1;
       scene = new THREE.Scene();
 
       uniforms = {
@@ -89,14 +83,20 @@
         fragmentShader: document.getElementById('fragmentShaderCircle').textContent
       });
 
-      mesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), material);
+      mesh = new THREE.Mesh(new THREE.BoxGeometry(), material);
+      mesh.material.side = THREE.DoubleSide;
+      mesh.rotation.x = Math.PI / 2.0;
+
       scene.add(mesh);
 
       renderer = new THREE.WebGLRenderer();
-      console.log(renderer.getContext());
-
       renderer.setPixelRatio(window.devicePixelRatio ? window.devicePixelRatio : 1);
       container.appendChild(renderer.domElement);
+
+      camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 2000);
+      camera.position.set(0, 1, 2);
+
+      controls = new OrbitControls(camera, renderer.domElement);
 
       uniforms.resolution.value.x = window.innerWidth;
       uniforms.resolution.value.y = window.innerHeight;
@@ -106,6 +106,7 @@
     function animate()
     {
       requestAnimationFrame(animate);
+      controls.update();
       render();
     }
 
