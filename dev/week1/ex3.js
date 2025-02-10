@@ -3,7 +3,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 
 function makeInstance(texture, geometry, color, x) {
-    const material = new THREE.MeshBasicMaterial({ color, map: texture,  side: THREE.DoubleSide });
+    const material = new THREE.MeshBasicMaterial({ color, map: texture, side: THREE.DoubleSide });
 
     const cube = new THREE.Mesh(geometry, material);
 
@@ -70,7 +70,6 @@ function main() {
         { pos: [4, 1.2, 2.8], norm: [1, 0, 0], uv: [0.7, 0.3] },
         { pos: [4, 2.8, 2.8], norm: [1, 0, 0], uv: [0.7, 0.7] },
         { pos: [4, 2.8, 1.2], norm: [1, 0, 0], uv: [0.3, 0.7] },
-
 
         // back
         { pos: [4, 0, 0], norm: [0, 0, -1], uv: [0, 0] },
@@ -186,8 +185,8 @@ function main() {
 
     const cubes = [
         makeInstance(texture, geometry, 0x00FF00, 0),
-        makeInstance(texture, geometry, 0xFF0000, -10),
-        makeInstance(texture, geometry, 0x0000FF, 10),
+        makeInstance(texture, geometry, 0xFF0000, 5),
+        makeInstance(texture, geometry, 0x0000FF, -5),
     ];
 
     for (const cube of cubes)
