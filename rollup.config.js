@@ -6,14 +6,23 @@ import glob from "glob";
 const docsDir = "docs";
 const devDir = "dev";
 const mainJs = "main.js";
+const resourcesDir = `${devDir}/resources`;
 
-// generate `exercises` array dynamically from `exercisesDir`
-const devFiles = glob.sync(`${devDir}/*/*.html`);
-const devArray = devFiles.map((file) => {
-  const match = file.match(/week(\d+)\/ex(\d+)\.html$/);
-  return match ? { week: Number(match[1]), ex: Number(match[2]) } : null;
-}).filter(Boolean);
-devArray.sort((a, b) => (a.week - b.week) || (a.ex - b.ex));
+
+const resourceFiles = glob.sync(`${resourcesDir}/**/*`);
+const outputDir = path.join(docsDir, resourcesDir.replace(`${devDir}/`, ""));
+if (!fs.existsSync(outputDir))
+  fs.mkdirSync(outputDir, { recursive: true });
+
+for (const file of resourceFiles)
+{
+  const filename = path.basename(file);
+  const outputFilename = path.join(outputDir, filename);
+
+  fs.copyFileSync(file, outputFilename);
+  console.log(`✅ Copied: ${outputDir}`);
+}
+
 
 const ghRepoLink = "https://github.com/8gaU8/3d-vis-practical-works/tree/main/docs/";
 
