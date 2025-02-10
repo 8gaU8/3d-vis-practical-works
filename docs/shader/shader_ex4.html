@@ -17,50 +17,40 @@
     <div id="container"></div>
 
     <script id="vertexShader" type="x-shader/x-vertex">
-
-            uniform float time;
-            varying vec3 myColor;
-            void main()
-            {
-                myColor = vec3 ( (0.5+position.x)*1.0, (0.5+position.y)*1.0, 1.0 );
-                gl_Position =
-                  projectionMatrix
-                  * modelViewMatrix
-                  * vec4 (
-                    position.x,
-                    position.y,
-                    (
-                      position.z
-                      + (cos(position.x * 30.0)
-                      + sin(position.y * 20.0))
-                      * cos(time)
-                      / 10.0
-                    ),
-                    1.0
-                  );
-      //          gl_Position = projectionMatrix
-      //                      * modelViewMatrix
-      //                      * vec4 (
-      //                        position.x,
-      //                        position.y,
-      //                        position.z + (
-      //                          cos(position.x*30.0)
-      //                         +sin(position.y*20.0)
-      //                         )
-      //                         *cos(time)/10.0, 1.0);
-            }
+      uniform float time;
+      varying vec2 vUv;
+      void main()
+      {
+          vUv = uv;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4 (position, 1.0);
+      }
     </script>
 
     <script id="fragmentShader" type="x-shader/x-fragment">
       uniform float time;
-      varying vec3 myColor;
+      uniform sampler2D tex;
+      varying vec2 vUv;
+      float sigmoid(float x){
+        return 1.0 / (1.0 + exp(-x));
+      }
 
-      void main()
-      {
-          gl_FragColor = vec4(myColor, 1.0);
+      void main()	{
+        vec2 center = vec2(0.5, 0.5);
+        vec2 offset = vUv - center;
+        float dist = sqrt(offset.x*offset.x + offset.y*offset.y);
+
+        float stretchFactor = (
+              sigmoid(mod(time, 5.) - 1.5)
+             / (dist + 0.01)
+        ) * 0.75;
+
+        vec2 newUV = mod(center + offset * stretchFactor, 0.9);
+
+        vec3 texColor = texture2D (tex, newUV).rgb;
+        gl_FragColor = vec4(texColor, 1.0);
+
       }
     </script>
-
     <script
       async
       src="https://unpkg.com/es-module-shims@1.3.6/dist/es-module-shims.js"
@@ -78,17 +68,22 @@
       import * as THREE from "three";
       import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
-      var container;
-      var camera, scene, renderer, controls;
-      var uniforms, material, mesh;
+      let container;
+      let camera, scene, renderer, controls;
+      let uniforms, material, mesh;
+      let windowHalfX = window.innerWidth / 2;
+      let windowHalfY = window.innerHeight / 2;
 
-      var windowHalfX = window.innerWidth / 2;
-      var windowHalfY = window.innerHeight / 2;
+      var startTime;
+      var textureForShader;
+      var textureLoader = new THREE.TextureLoader();
 
-      var startTime = Date.now();
-
-      init();
-      animate();
+      textureLoader.load("../resources/stars.jpg", function (texture) {
+        textureForShader = texture;
+        init();
+        startTime = Date.now();
+        animate();
+      });
 
       function init() {
         container = document.getElementById("container");
@@ -96,6 +91,7 @@
 
         uniforms = {
           time: { type: "f", value: 1.0 },
+          tex: { type: "t", value: textureForShader },
         };
 
         material = new THREE.ShaderMaterial({
@@ -104,11 +100,12 @@
           fragmentShader: document.getElementById("fragmentShader").textContent,
         });
 
-        var geometry = new THREE.PlaneGeometry(1, 1, 100, 100);
+        var geometry = new THREE.PlaneGeometry(1, 1, 200, 200);
 
         mesh = new THREE.Mesh(geometry, material);
-        mesh.material.side = THREE.DoubleSide;
-        mesh.rotation.x = Math.PI / 2.0;
+        // mesh.material.side = THREE.DoubleSide;
+        // mesh.rotation.x = Math.PI / 2.0;
+        // mesh.rotation.z = Math.PI;
 
         scene.add(mesh);
 
@@ -118,22 +115,20 @@
         );
         container.appendChild(renderer.domElement);
 
+        console.log(renderer);
         camera = new THREE.PerspectiveCamera(
           60,
           window.innerWidth / window.innerHeight,
           0.1,
           200,
         );
-        camera.position.set(0, 1, 2);
-
-        controls = new OrbitControls(camera, renderer.domElement);
+        camera.position.set(0, 0, 1);
 
         renderer.setSize(window.innerWidth, window.innerHeight);
       }
 
       function animate() {
         requestAnimationFrame(animate);
-        controls.update();
         render();
       }
 
