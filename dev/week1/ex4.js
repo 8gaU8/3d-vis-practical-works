@@ -2,6 +2,11 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { VertexNormalsHelper } from 'three/addons/helpers/VertexNormalsHelper.js';
 
+const COLOR = {
+    black: 0x3a3f3b,
+    blue: 0x74bed6,
+    silver: 0xD1D8D8
+}
 
 const initCamera = (cameraType) => {
     if (cameraType === THREE.OrthographicCamera)
@@ -32,10 +37,8 @@ const initCamera = (cameraType) => {
 const genSolid = (geometry, color) => {
     // const meshMaterial = new THREE.MeshNormalMaterial({ side: THREE.DoubleSide })
     const meshMaterial = new THREE.MeshStandardMaterial({ color: color, side: THREE.DoubleSide })
-    // new THREE.MeshStandardMaterial();
-    // 影を受け付ける
     const solid = new THREE.Mesh(geometry, meshMaterial)
-    // solid.receiveShadow = true
+    solid.receiveShadow = true
     solid.castShadow = true;
 
 
@@ -67,24 +70,32 @@ const createBody = () => {
         4, 5, 6, 6, 7, 4
     ];
 
-    const geometry = new THREE.PolyhedronGeometry(verticesOfCube, indicesOfFaces, 10, 0);
-    const body = genSolid(geometry, 0x00ff00)
-    body.translateY(2)
-    body.name = "body"
+    const bodyGeometry = new THREE.PolyhedronGeometry(verticesOfCube, indicesOfFaces, 10, 0);
+    const body = genSolid(bodyGeometry, COLOR.black)
+    body.name = 'body'
+
     return body
+
 }
 
+
+const createBeam = () => {
+    const beamGeometry = new THREE.BoxGeometry(5, 50, 5);
+    const beam = genSolid(beamGeometry, COLOR.silver)
+    beam.name = 'beam'
+    return beam
+}
 const createFingerBase = (length, height, diam) => {
     const group = new THREE.Group()
 
     const jointGeo = new THREE.CylinderGeometry(diam / 2, diam / 2, height, 12);
-    const jointL = genSolid(jointGeo, 0x00ffff)
+    const jointL = genSolid(jointGeo, COLOR.blue)
 
     const armBeamGeo = new THREE.BoxGeometry(length, height, diam);
-    const armBeam = genSolid(armBeamGeo, 0x00ff00)
+    const armBeam = genSolid(armBeamGeo, COLOR.black)
     armBeam.translateX(length / 2)
 
-    const jointR = genSolid(jointGeo, 0x00ffff)
+    const jointR = genSolid(jointGeo, COLOR.blue)
     jointR.translateX(length / 1.0)
 
     group.add(jointL)
@@ -97,18 +108,15 @@ const createFingerBase = (length, height, diam) => {
 const createArmBase = (length, height, diam) => {
     const group = new THREE.Group()
 
-    // const jointGeo = new THREE.CylinderGeometry(diam / 2, diam / 2, height, 12);
-    const jointGeo = new THREE.SphereGeometry(diam / 2.0, 12, 12)
-    const jointL = genSolid(jointGeo, 0x00ffff)
+    const jointGeo = new THREE.SphereGeometry(diam / 2.0, 12, 24)
+    const jointL = genSolid(jointGeo, COLOR.blue)
 
-    // const armBeamGeo = new THREE.BoxGeometry(length, height, diam);
-    const armBeamGeo = new THREE.CylinderGeometry(diam / 2.0, diam / 2.0, length, 12);
-    const armBeam = genSolid(armBeamGeo, 0x00ff00)
+    const armBeamGeo = new THREE.CylinderGeometry(diam / 2.0 + 0.5, diam / 2.0 + 0.5, length, 24);
+    const armBeam = genSolid(armBeamGeo, COLOR.black)
     armBeam.rotateZ(-Math.PI / 2.0)
     armBeam.translateY(height / 2.0)
-    // armBeam.translateX(length / 2)
 
-    const jointR = genSolid(jointGeo, 0x00ffff)
+    const jointR = genSolid(jointGeo, COLOR.blue)
     jointR.translateX(length / 1.0)
 
     group.add(jointL)
@@ -122,12 +130,12 @@ const createHand = (left = true) => {
     const fingerLength = 2
     const namePrefex = left ? "left" : "right"
 
-    const cylinderGeo = new THREE.CylinderGeometry(1, 2, 3, 12);
-    const cylinder = genSolid(cylinderGeo, 0xffffff)
+    const cylinderGeo = new THREE.CylinderGeometry(1, 2, 3, 24);
+    const cylinder = genSolid(cylinderGeo, COLOR.black)
     cylinder.rotateZ(Math.PI / 2)
 
     const boxGeo = new THREE.BoxGeometry(1, 3.0, 2);
-    const box = genSolid(boxGeo, 0xffffff)
+    const box = genSolid(boxGeo, COLOR.black)
     box.name = 'box1'
     box.translateX(2)
 
@@ -172,9 +180,9 @@ const createArm = (left = true) => {
     const armLength = 5
     const sign = left ? 1 : -1
     const namePrefex = left ? "left" : "right"
-    const shoulderGeo = new THREE.CylinderGeometry(4, 2, 8, 12);
+    const shoulderGeo = new THREE.CylinderGeometry(4, 2, 8, 24);
 
-    const shoulder = genSolid(shoulderGeo, 0xff0000)
+    const shoulder = genSolid(shoulderGeo, 0x3a3f3b)
     shoulder.rotateZ(sign * Math.PI / 4)
     shoulder.rotateX(Math.PI / 4)
     shoulder.translateY(7)
@@ -210,47 +218,62 @@ const createArm = (left = true) => {
     hand.translateX(armLength * 1.5)
     foreArm.add(hand)
 
-
     return shoulder
 }
 
-
 const createRobot = () => {
+    const beam = createBeam()
     const body = createBody()
     const leftArm = createArm(true)
     const rightArm = createArm(false)
+    beam.add(body)
     body.add(leftArm)
     body.add(rightArm)
-    return body
+    return beam
 }
 
+const moveFinger = (time, robot) => {
+    const y = (Math.sin(time) + 1) * Math.PI / 4
+
+    robot.getObjectByName("leftFinger1").rotation.y = y
+    robot.getObjectByName("leftFingerTip1").rotation.y = - y * 0.5
+    robot.getObjectByName("leftFinger2").rotation.y = y
+    robot.getObjectByName("leftFingerTip2").rotation.y = -y * 0.5
+    robot.getObjectByName("leftHand").rotation.x += 0.02
+
+    const yRight = (Math.cos(1.1 * time) + 1) * Math.PI / 4
+    robot.getObjectByName("rightFinger1").rotation.y = yRight
+    robot.getObjectByName("rightFingerTip1").rotation.y = - yRight * 0.5
+    robot.getObjectByName("rightFinger2").rotation.y = yRight
+    robot.getObjectByName("rightFingerTip2").rotation.y = -yRight * 0.5
+    robot.getObjectByName("rightHand").rotation.x += 0.03
+}
+
+const moveArm = (time, robot) => {
+
+    time = time * 0.5
+    robot.getObjectByName("rightUpperArm").rotation.z = Math.sin(time) / 2
+    robot.getObjectByName("rightMiddleArm").rotation.y = -Math.sin(time) / 2
+    robot.getObjectByName("rightForeArm").rotation.z = Math.sin(time) / 2
+    robot.getObjectByName("rightForeArm").rotation.y = Math.sin(time) / 2
+
+    robot.getObjectByName("leftUpperArm").rotation.z = Math.sin(time) / 2
+    robot.getObjectByName("leftMiddleArm").rotation.y = -Math.sin(time) / 2
+    robot.getObjectByName("leftForeArm").rotation.z = Math.sin(time) / 2
+}
+
+const moveBody = (time, robot) => {
+    time /= 2
+    robot.getObjectByName("body").position.y = Math.sin(time+1) * 3
+}
 
 const rotateStep = (robot) => {
-    const time = Date.now() * 0.001
-    robot.getObjectByName("leftUpperArm").rotation.y = Math.sin(time)
-    robot.getObjectByName("leftMiddleArm").rotation.z += 0.01
-    robot.getObjectByName("leftMiddleArm").rotation.y += 0.02
-    robot.getObjectByName("leftForeArm").rotation.y += 0.01
-
-    robot.getObjectByName("rightUpperArm").rotation.y = Math.sin(time)
-    robot.getObjectByName("rightMiddleArm").rotation.z += 0.01
-    robot.getObjectByName("rightMiddleArm").rotation.y += 0.02
-    robot.getObjectByName("rightForeArm").rotation.y += 0.01
-
-    robot.getObjectByName("rightHand").rotation.x += 0.02
-
-    robot.getObjectByName("leftFinger1").rotation.y = Math.max(Math.sin(time), 0)
-    robot.getObjectByName("leftFingerTip1").rotation.y = Math.min(Math.sin(time), 0)
-    robot.getObjectByName("leftFinger2").rotation.y = Math.max(Math.sin(time), 0)
-    robot.getObjectByName("leftFingerTip2").rotation.y = Math.min(Math.sin(time), 0)
-
-    robot.getObjectByName("rightFinger1").rotation.y = Math.max(Math.sin(time), 0)
-    robot.getObjectByName("rightFingerTip1").rotation.y = Math.min(Math.sin(time), 0)
-    robot.getObjectByName("rightFinger2").rotation.y = Math.max(Math.sin(time), 0)
-    robot.getObjectByName("rightFingerTip2").rotation.y = Math.min(Math.sin(time), 0)
+    const time = Date.now() * 0.005
+    moveBody(time, robot)
+    moveFinger(time, robot)
+    moveArm(time, robot)
 
 }
-
 
 const drawHelper = (scene) => {
     scene.add(new THREE.AxesHelper(1000))
@@ -264,56 +287,77 @@ const drawHelper = (scene) => {
     })
 }
 
-const main = (DEBUG_MODE) => {
+const initLight = (scene) => {
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    ambientLight.castShadow = true
 
-    const canvas = document.querySelector('#c');
-    const renderer = new THREE.WebGLRenderer({ antialias: true, canvas });
-    renderer.shadowMap.enabled = true;
+    scene.add(ambientLight);
+    const light = new THREE.DirectionalLight(0xffffff, 1.4);
+    light.translateY(30)
+    light.position.set(5, 100, 0);
+    light.castShadow = true;
 
-    renderer.setSize(window.innerWidth, window.innerHeight)
+    light.shadow.camera.left = -50;
+    light.shadow.camera.right = 50;
+    light.shadow.camera.top = 50;
+    light.shadow.camera.bottom = -50;
 
-    const scene = new THREE.Scene()
+    light.shadow.mapSize.width = 1024;
+    light.shadow.mapSize.height = 1024;
 
-    // 床
-    const meshFloor = new THREE.Mesh(
-        new THREE.BoxGeometry(400, 0.1, 400),
-        new THREE.MeshStandardMaterial());
-    // 影を受けるMeshオブジェクトに影の設定
+    scene.add(light);
+    if (DEBUG_MODE)
+    {
+        const lightHelper = new THREE.CameraHelper(light.shadow.camera)
+        scene.add(lightHelper)
+    }
+
+}
+
+const initFloor = (scene) => {
+    const meshFloor = new THREE.Mesh(new THREE.BoxGeometry(400, 0.1, 400), new THREE.MeshStandardMaterial());
     meshFloor.translateY(-20)
     meshFloor.receiveShadow = true;
     scene.add(meshFloor);
+}
 
-    const light = new THREE.DirectionalLight(0xffffff, 2)
-    // ライトに影を有効にする
-    light.castShadow = true
-    scene.add(light);
+const initRenderer = () => {
+    const canvas = document.querySelector('#c');
+    const renderer = new THREE.WebGLRenderer({ antialias: true, canvas });
+    renderer.shadowMap.enabled = true;
+    renderer.setSize(window.innerWidth, window.innerHeight)
+    return renderer
+}
 
+const initRobot = (scene) => {
     const robot = createRobot()
-    robot.castShadow =true 
-    robot.receiveShadow =true 
     scene.add(robot)
+    console.log(robot)
+}
+
+
+const main = (DEBUG_MODE = false) => {
+    const scene = new THREE.Scene()
+
+    const renderer = initRenderer()
+    initFloor(scene)
+    initRobot(scene)
+    initLight(scene)
 
     if (DEBUG_MODE)
         drawHelper(scene)
-    console.log(robot)
-
 
     const camera = initCamera(THREE.PerspectiveCamera)
+    scene.add(camera)
     const controls = new OrbitControls(camera, renderer.domElement);
-    controls.update()
-
-
-
     controls.enabled = true
 
     const render = () => {
         rotateStep(scene, 0.5)
-        // if (DEBUG_MODE)
-        //     drawHelper(scene)
         controls.update()
         renderer.render(scene, camera)
         requestAnimationFrame(render)
-        // renderer.updateShadowMap()
+        renderer.updateShadowMap()
     }
     requestAnimationFrame(render)
 }
