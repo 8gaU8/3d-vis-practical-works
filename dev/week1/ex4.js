@@ -170,8 +170,6 @@ const createHand = (left = true) => {
     palmBase.add(finger2)
     palmBase.name = namePrefex + "Hand"
     return palmBase
-
-
 }
 
 const createArm = (left = true) => {
@@ -264,7 +262,7 @@ const moveArm = (time, robot) => {
 
 const moveBody = (time, robot) => {
     time /= 2
-    robot.getObjectByName("body").position.y = Math.sin(time+1) * 3
+    robot.getObjectByName("body").position.y = Math.sin(time + 1) * 3
 }
 
 const rotateStep = (robot) => {
