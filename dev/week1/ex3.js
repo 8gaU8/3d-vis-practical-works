@@ -1,9 +1,34 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
+function reverseBaseindices(baseIndices) {
+    const reversed = [];
+    for (let i = 0; i < baseIndices.length; i += 3)
+    {
+        reversed.push(baseIndices[i]);
+        reversed.push(baseIndices[i + 2]);
+        reversed.push(baseIndices[i + 1]);
+    }
+    return reversed;
+}
+
+const baseIndices = [
+    0, 1, 9, 0, 9, 7,
+    2, 3, 10, 2, 10, 1,
+    11, 3, 4, 4, 5, 11,
+    8, 5, 6, 7, 8, 6,
+];
+
+const reversedIndices = reverseBaseindices(baseIndices)
 
 function makeInstance(texture, geometry, color, x) {
-    const material = new THREE.MeshBasicMaterial({ color, map: texture, side: THREE.DoubleSide });
+    const material = new THREE.MeshBasicMaterial(
+        {
+            color: color,
+            map: texture,
+            side: THREE.DoubleSide,
+        }
+    );
 
     const cube = new THREE.Mesh(geometry, material);
 
@@ -11,6 +36,90 @@ function makeInstance(texture, geometry, color, x) {
     return { cube: cube };
 }
 
+
+// transform functions
+const toFront = p => [p[0], p[1], MAX_SIZE];
+const toRight = p => [MAX_SIZE, p[1], p[0]];
+const toBack = p => [MAX_SIZE - p[0], p[1], 0];
+const toLeft = p => [0, p[1], MAX_SIZE - p[0]];
+const toTop = p => [p[0], MAX_SIZE, p[1]];
+const toBottom = p => [MAX_SIZE - p[0], 0, MAX_SIZE - p[1]];
+
+const MAX_SIZE = 4;
+// normal
+const normalsDef = {
+    front: [0, 0, 1],
+    right: [1, 0, 0],
+    back: [0, 0, -1],
+    left: [-1, 0, 0],
+    top: [0, 1, 0],
+    bottom: [0, -1, 0],
+};
+
+// definition of front panel
+const frontVertices = [
+    { pos: [0, 0], uv: [0, 0] },    // 0
+    { pos: [2.8, 0], uv: [0.7, 0] },  // 1
+    { pos: [4, 0], uv: [1, 0] },    // 2
+    { pos: [4, 2.8], uv: [1, 0.7] },  // 3
+    { pos: [4, 4], uv: [1, 1] },    // 4
+    { pos: [1.2, 4], uv: [0.3, 1] },  // 5
+    { pos: [0, 4], uv: [0, 1] },    // 6
+    { pos: [0, 1.2], uv: [0, 0.3] },  // 7
+    { pos: [1.2, 1.2], uv: [0.3, 0.3] },// 8
+    { pos: [2.8, 1.2], uv: [0.7, 0.3] },// 9
+    { pos: [2.8, 2.8], uv: [0.7, 0.7] },// 10
+    { pos: [1.2, 2.8], uv: [0.3, 0.7] },// 11
+];
+
+function generateFaceVertices(baseVertices, transformFn, normal) {
+    return baseVertices.map(v => ({
+        pos: transformFn(v.pos),
+        uv: v.uv.slice(),
+        norm: normal.slice(),
+    }));
+}
+
+const indexSize = Math.max(...baseIndices) + 1;
+
+const panelSettings = {
+    front: {
+        transform: toFront,
+        normal: normalsDef.front,
+        indices: baseIndices,
+        indexOffset: 0
+    },
+    right: {
+        transform: toRight,
+        normal: normalsDef.right,
+        indices: reversedIndices,
+        indexOffset: indexSize * 1
+    },
+    back: {
+        transform: toBack,
+        normal: normalsDef.back,
+        indices: baseIndices,
+        indexOffset: indexSize * 2
+    },
+    left: {
+        transform: toLeft,
+        normal: normalsDef.left,
+        indices: reversedIndices,
+        indexOffset: indexSize * 3
+    },
+    top: {
+        transform: toTop,
+        normal: normalsDef.top,
+        indices: reversedIndices,
+        indexOffset: indexSize * 4
+    },
+    bottom: {
+        transform: toBottom,
+        normal: normalsDef.bottom,
+        indices: baseIndices,
+        indexOffset: indexSize * 5
+    },
+}
 
 function main() {
     const canvas = document.querySelector('#c');
@@ -40,93 +149,16 @@ function main() {
         scene.add(light);
     }
 
-    // NOT A GOOD EXAMPLE OF HOW TO MAKE A CUBE!
-    // Only trying to make it clear most vertices are unique
-    const vertices = [
-        // front
-        { pos: [0, 0, 4], norm: [0, 0, 1], uv: [0, 0], }, // 0
-        { pos: [2.8, 0, 4], norm: [0, 0, 1], uv: [0.7, 0], }, // 0
-        { pos: [4, 0, 4], norm: [0, 0, 1], uv: [1, 0], }, // 0
-        { pos: [4, 2.8, 4], norm: [0, 0, 1], uv: [1, 0.7], }, // 0
-        { pos: [4, 4, 4], norm: [0, 0, 1], uv: [1, 1], }, // 0
-        { pos: [1.2, 4, 4], norm: [0, 0, 1], uv: [0.3, 1], }, // 0
-        { pos: [0, 4, 4], norm: [0, 0, 1], uv: [0, 1], }, // 0
-        { pos: [0, 1.2, 4], norm: [0, 0, 1], uv: [0, 0.3], }, // 0
-        { pos: [1.2, 1.2, 4], norm: [0, 0, 1], uv: [0.3, 0.3], }, // 0
-        { pos: [2.8, 1.2, 4], norm: [0, 0, 1], uv: [0.7, 0.3], }, // 0
-        { pos: [2.8, 2.8, 4], norm: [0, 0, 1], uv: [0.7, 0.7], }, // 0
-        { pos: [1.2, 2.8, 4], norm: [0, 0, 1], uv: [0.3, 0.7], }, // 0
-
-        // right
-        { pos: [4, 0, 0], norm: [1, 0, 0], uv: [0, 0] },
-        { pos: [4, 0, 2.8], norm: [1, 0, 0], uv: [0.7, 0] },
-        { pos: [4, 0, 4], norm: [1, 0, 0], uv: [1, 0] },
-        { pos: [4, 2.8, 4], norm: [1, 0, 0], uv: [1, 0.7] },
-        { pos: [4, 4, 4], norm: [1, 0, 0], uv: [1, 1] },
-        { pos: [4, 4, 1.2], norm: [1, 0, 0], uv: [0.3, 1] },
-        { pos: [4, 4, 0], norm: [1, 0, 0], uv: [0, 1] },
-        { pos: [4, 1.2, 0], norm: [1, 0, 0], uv: [0, 0.3] },
-        { pos: [4, 1.2, 1.2], norm: [1, 0, 0], uv: [0.3, 0.3] },
-        { pos: [4, 1.2, 2.8], norm: [1, 0, 0], uv: [0.7, 0.3] },
-        { pos: [4, 2.8, 2.8], norm: [1, 0, 0], uv: [0.7, 0.7] },
-        { pos: [4, 2.8, 1.2], norm: [1, 0, 0], uv: [0.3, 0.7] },
-
-        // back
-        { pos: [4, 0, 0], norm: [0, 0, -1], uv: [0, 0] },
-        { pos: [1.2, 0, 0], norm: [0, 0, -1], uv: [0.7, 0] },
-        { pos: [0, 0, 0], norm: [0, 0, -1], uv: [1, 0] },
-        { pos: [0, 2.8, 0], norm: [0, 0, -1], uv: [1, 0.7] },
-        { pos: [0, 4, 0], norm: [0, 0, -1], uv: [1, 1] },
-        { pos: [2.8, 4, 0], norm: [0, 0, -1], uv: [0.3, 1] },
-        { pos: [4, 4, 0], norm: [0, 0, -1], uv: [0, 1] },
-        { pos: [4, 1.2, 0], norm: [0, 0, -1], uv: [0, 0.3] },
-        { pos: [2.8, 1.2, 0], norm: [0, 0, -1], uv: [0.3, 0.3] },
-        { pos: [1.2, 1.2, 0], norm: [0, 0, -1], uv: [0.7, 0.3] },
-        { pos: [1.2, 2.8, 0], norm: [0, 0, -1], uv: [0.7, 0.7] },
-        { pos: [2.8, 2.8, 0], norm: [0, 0, -1], uv: [0.3, 0.7] },
-
-        // left
-        { pos: [0, 0, 4], norm: [-1, 0, 0], uv: [0, 0] },
-        { pos: [0, 0, 1.2], norm: [-1, 0, 0], uv: [0.7, 0] },
-        { pos: [0, 0, 0], norm: [-1, 0, 0], uv: [1, 0] },
-        { pos: [0, 2.8, 0], norm: [-1, 0, 0], uv: [1, 0.7] },
-        { pos: [0, 4, 0], norm: [-1, 0, 0], uv: [1, 1] },
-        { pos: [0, 4, 2.8], norm: [-1, 0, 0], uv: [0.3, 1] },
-        { pos: [0, 4, 4], norm: [-1, 0, 0], uv: [0, 1] },
-        { pos: [0, 1.2, 4], norm: [-1, 0, 0], uv: [0, 0.3] },
-        { pos: [0, 1.2, 2.8], norm: [-1, 0, 0], uv: [0.3, 0.3] },
-        { pos: [0, 1.2, 1.2], norm: [-1, 0, 0], uv: [0.7, 0.3] },
-        { pos: [0, 2.8, 1.2], norm: [-1, 0, 0], uv: [0.7, 0.7] },
-        { pos: [0, 2.8, 2.8], norm: [-1, 0, 0], uv: [0.3, 0.7] },
-
-        // top
-        { pos: [0, 4, 0], norm: [0, 1, 0], uv: [0, 0] },
-        { pos: [2.8, 4, 0], norm: [0, 1, 0], uv: [0.7, 0] },
-        { pos: [4, 4, 0], norm: [0, 1, 0], uv: [1, 0] },
-        { pos: [4, 4, 2.8], norm: [0, 1, 0], uv: [1, 0.7] },
-        { pos: [4, 4, 4], norm: [0, 1, 0], uv: [1, 1] },
-        { pos: [1.2, 4, 4], norm: [0, 1, 0], uv: [0.3, 1] },
-        { pos: [0, 4, 4], norm: [0, 1, 0], uv: [0, 1] },
-        { pos: [0, 4, 1.2], norm: [0, 1, 0], uv: [0, 0.3] },
-        { pos: [1.2, 4, 1.2], norm: [0, 1, 0], uv: [0.3, 0.3] },
-        { pos: [2.8, 4, 1.2], norm: [0, 1, 0], uv: [0.7, 0.3] },
-        { pos: [2.8, 4, 2.8], norm: [0, 1, 0], uv: [0.7, 0.7] },
-        { pos: [1.2, 4, 2.8], norm: [0, 1, 0], uv: [0.3, 0.7] },
-
-        // bottom
-        { pos: [4, 0, 4], norm: [0, -1, 0], uv: [0, 0] },
-        { pos: [1.2, 0, 4], norm: [0, -1, 0], uv: [0.7, 0] },
-        { pos: [0, 0, 4], norm: [0, -1, 0], uv: [1, 0] },
-        { pos: [0, 0, 1.2], norm: [0, -1, 0], uv: [1, 0.7] },
-        { pos: [0, 0, 0], norm: [0, -1, 0], uv: [1, 1] },
-        { pos: [2.8, 0, 0], norm: [0, -1, 0], uv: [0.3, 1] },
-        { pos: [4, 0, 0], norm: [0, -1, 0], uv: [0, 1] },
-        { pos: [4, 0, 2.8], norm: [0, -1, 0], uv: [0, 0.3] },
-        { pos: [2.8, 0, 2.8], norm: [0, -1, 0], uv: [0.3, 0.3] },
-        { pos: [1.2, 0, 2.8], norm: [0, -1, 0], uv: [0.7, 0.3] },
-        { pos: [1.2, 0, 1.2], norm: [0, -1, 0], uv: [0.7, 0.7] },
-        { pos: [2.8, 0, 1.2], norm: [0, -1, 0], uv: [0.3, 0.7] },
-    ];
+    let indices = [];
+    let vertices = [];
+    const allFaces = ['front', 'right', 'back', 'left', 'top', 'bottom'];
+    for (const faceName of allFaces)
+    {
+        const face = panelSettings[faceName];
+        const faceVertices = generateFaceVertices(frontVertices, face.transform, face.normal);
+        vertices = vertices.concat(faceVertices);
+        indices = indices.concat(face.indices.map(i => i + face.indexOffset));
+    }
 
     const numVertices = vertices.length;
     const positionNumComponents = 3;
@@ -158,27 +190,7 @@ function main() {
     geometry.setAttribute(
         'uv',
         new THREE.BufferAttribute(uvs, uvNumComponents));
-
-    geometry.setIndex([
-        // front
-        0, 1, 9, 0, 9, 7, 2, 3, 10, 2, 10, 1, 11, 3, 4, 4, 5, 11, 8, 5, 6, 7, 8, 6,
-
-        // right
-        12, 21, 13, 12, 19, 21, 14, 22, 15, 14, 13, 22, 23, 16, 15, 16, 23, 17, 20, 18, 17, 19, 18, 20,
-
-        // back
-        24, 25, 33, 24, 33, 31, 26, 27, 34, 26, 34, 25, 35, 27, 28, 28, 29, 35, 32, 29, 30, 31, 32, 30,
-
-        // left
-        36, 45, 37, 36, 43, 45, 38, 46, 39, 38, 37, 46, 47, 40, 39, 40, 47, 41, 44, 42, 41, 43, 42, 44,
-
-        // top
-        48, 57, 49, 48, 55, 57, 50, 58, 51, 50, 49, 58, 59, 52, 51, 52, 59, 53, 56, 54, 53, 55, 54, 56,
-
-        // bottom
-        60, 61, 69, 60, 69, 67, 62, 63, 70, 62, 70, 61, 71, 63, 64, 64, 65, 71, 68, 65, 66, 67, 68, 66,
-
-    ]);
+    geometry.setIndex(indices);
 
     const loader = new THREE.TextureLoader();
     const texture = loader.load('../resources/grenouille.jpg');

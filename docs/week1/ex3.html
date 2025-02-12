@@ -62,8 +62,9 @@
 
     function makeInstance(texture, geometry, color, x) {
       const material = new THREE.MeshBasicMaterial({
+        color: color,
         map: texture,
-        // side: THREE.DoubleSide
+        side: THREE.DoubleSide,
       });
 
       const cube = new THREE.Mesh(geometry, material);
@@ -107,16 +108,54 @@
       { pos: [1.2, 2.8], uv: [0.3, 0.7] }, // 11
     ];
 
-    // 各面ごとに、フロント面の頂点定義から3次元座標と法線を生成する
     function generateFaceVertices(baseVertices, transformFn, normal) {
-      // baseVertices の各要素は { pos: [x,y], uv: [...] } となっており、
-      // フロント面は z 固定 4 で定義しているので、ここで変換関数に渡すのは [x, y]
       return baseVertices.map((v) => ({
         pos: transformFn(v.pos),
         uv: v.uv.slice(),
         norm: normal.slice(),
       }));
     }
+
+    const indexSize = Math.max(...baseIndices) + 1;
+
+    const panelSettings = {
+      front: {
+        transform: toFront,
+        normal: normalsDef.front,
+        indices: baseIndices,
+        indexOffset: 0,
+      },
+      right: {
+        transform: toRight,
+        normal: normalsDef.right,
+        indices: reversedIndices,
+        indexOffset: indexSize * 1,
+      },
+      back: {
+        transform: toBack,
+        normal: normalsDef.back,
+        indices: baseIndices,
+        indexOffset: indexSize * 2,
+      },
+      left: {
+        transform: toLeft,
+        normal: normalsDef.left,
+        indices: reversedIndices,
+        indexOffset: indexSize * 3,
+      },
+      top: {
+        transform: toTop,
+        normal: normalsDef.top,
+        indices: reversedIndices,
+        indexOffset: indexSize * 4,
+      },
+      bottom: {
+        transform: toBottom,
+        normal: normalsDef.bottom,
+        indices: baseIndices,
+        indexOffset: indexSize * 5,
+      },
+    };
 
     function main() {
       const canvas = document.querySelector("#c");
@@ -146,47 +185,19 @@
         scene.add(light);
       }
 
-      // --- 各面の頂点生成 ---
-      const faces = {
-        front: generateFaceVertices(
-          frontVertices,
-          toFront,
-          normalsDef.front,
-          false,
-        ),
-        right: generateFaceVertices(
-          frontVertices,
-          toRight,
-          normalsDef.right,
-          true,
-        ),
-        back: generateFaceVertices(
-          frontVertices,
-          toBack,
-          normalsDef.back,
-          false,
-        ),
-        left: generateFaceVertices(
-          frontVertices,
-          toLeft,
-          normalsDef.left,
-          true,
-        ),
-        top: generateFaceVertices(frontVertices, toTop, normalsDef.top, true),
-        bottom: generateFaceVertices(
-          frontVertices,
-          toBottom,
-          normalsDef.bottom,
-          false,
-        ),
-      };
-
-      // 全頂点を 1 つの配列にまとめる（順番は face ごとに 12 頂点ずつ）
-      const allFaces = ["front", "right", "back", "left", "top", "bottom"];
+      let indices = [];
       let vertices = [];
-      allFaces.forEach((faceName) => {
-        vertices = vertices.concat(faces[faceName]);
-      });
+      const allFaces = ["front", "right", "back", "left", "top", "bottom"];
+      for (const faceName of allFaces) {
+        const face = panelSettings[faceName];
+        const faceVertices = generateFaceVertices(
+          frontVertices,
+          face.transform,
+          face.normal,
+        );
+        vertices = vertices.concat(faceVertices);
+        indices = indices.concat(face.indices.map((i) => i + face.indexOffset));
+      }
 
       const numVertices = vertices.length;
       const positionNumComponents = 3;
@@ -198,8 +209,6 @@
       let posNdx = 0;
       let nrmNdx = 0;
       let uvNdx = 0;
-      let indices = [];
-
       for (const vertex of vertices) {
         positions.set(vertex.pos, posNdx);
         normals.set(vertex.norm, nrmNdx);
@@ -207,25 +216,6 @@
         posNdx += positionNumComponents;
         nrmNdx += normalNumComponents;
         uvNdx += uvNumComponents;
-        indices = indices.concat(vertex.indices);
-      }
-
-      // 各面ごとに baseIndices にオフセットを足して生成
-      allFaces.forEach((faceName) => {
-        switch (faceName) {
-          case "front":
-          case "back":
-          default:
-            indices = indices.concat(baseIndices);
-            break;
-        }
-      });
-      for (let face = 0; face < allFaces.length; face++) {
-        const offset = face * frontVertices.length; // 12 頂点ずつ
-        console.log(faces[allFaces[face]]);
-        baseIndices.forEach((idx) => {
-          indices.push(idx + offset);
-        });
       }
 
       const geometry = new THREE.BufferGeometry();
@@ -241,7 +231,6 @@
         "uv",
         new THREE.BufferAttribute(uvs, uvNumComponents),
       );
-
       geometry.setIndex(indices);
 
       const loader = new THREE.TextureLoader();
