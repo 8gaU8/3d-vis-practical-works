@@ -84,11 +84,7 @@
     };
 
     const genSolid = (geometry, color) => {
-      // const meshMaterial = new THREE.MeshNormalMaterial({ side: THREE.DoubleSide })
-      const meshMaterial = new THREE.MeshStandardMaterial({
-        color: color,
-        side: THREE.DoubleSide,
-      });
+      const meshMaterial = new THREE.MeshStandardMaterial({ color: color });
       const solid = new THREE.Mesh(geometry, meshMaterial);
       solid.receiveShadow = true;
       solid.castShadow = true;
@@ -298,45 +294,45 @@
       return beam;
     };
 
-    const moveFinger = (time, robot) => {
+    const moveFinger = (time, scene) => {
       const y = ((Math.sin(time) + 1) * Math.PI) / 4;
 
-      robot.getObjectByName("leftFinger1").rotation.y = y;
-      robot.getObjectByName("leftFingerTip1").rotation.y = -y * 0.5;
-      robot.getObjectByName("leftFinger2").rotation.y = y;
-      robot.getObjectByName("leftFingerTip2").rotation.y = -y * 0.5;
-      robot.getObjectByName("leftHand").rotation.x += 0.02;
+      scene.getObjectByName("leftFinger1").rotation.y = y;
+      scene.getObjectByName("leftFingerTip1").rotation.y = -y * 0.5;
+      scene.getObjectByName("leftFinger2").rotation.y = y;
+      scene.getObjectByName("leftFingerTip2").rotation.y = -y * 0.5;
+      scene.getObjectByName("leftHand").rotation.x += 0.02;
 
       const yRight = ((Math.cos(1.1 * time) + 1) * Math.PI) / 4;
-      robot.getObjectByName("rightFinger1").rotation.y = yRight;
-      robot.getObjectByName("rightFingerTip1").rotation.y = -yRight * 0.5;
-      robot.getObjectByName("rightFinger2").rotation.y = yRight;
-      robot.getObjectByName("rightFingerTip2").rotation.y = -yRight * 0.5;
-      robot.getObjectByName("rightHand").rotation.x += 0.03;
+      scene.getObjectByName("rightFinger1").rotation.y = yRight;
+      scene.getObjectByName("rightFingerTip1").rotation.y = -yRight * 0.5;
+      scene.getObjectByName("rightFinger2").rotation.y = yRight;
+      scene.getObjectByName("rightFingerTip2").rotation.y = -yRight * 0.5;
+      scene.getObjectByName("rightHand").rotation.x += 0.03;
     };
 
-    const moveArm = (time, robot) => {
+    const moveArm = (time, scene) => {
       time = time * 0.5;
-      robot.getObjectByName("rightUpperArm").rotation.z = Math.sin(time) / 2;
-      robot.getObjectByName("rightMiddleArm").rotation.y = -Math.sin(time) / 2;
-      robot.getObjectByName("rightForeArm").rotation.z = Math.sin(time) / 2;
-      robot.getObjectByName("rightForeArm").rotation.y = Math.sin(time) / 2;
+      scene.getObjectByName("rightUpperArm").rotation.z = Math.sin(time) / 2;
+      scene.getObjectByName("rightMiddleArm").rotation.y = -Math.sin(time) / 2;
+      scene.getObjectByName("rightForeArm").rotation.z = Math.sin(time) / 2;
+      scene.getObjectByName("rightForeArm").rotation.y = Math.sin(time) / 2;
 
-      robot.getObjectByName("leftUpperArm").rotation.z = Math.sin(time) / 2;
-      robot.getObjectByName("leftMiddleArm").rotation.y = -Math.sin(time) / 2;
-      robot.getObjectByName("leftForeArm").rotation.z = Math.sin(time) / 2;
+      scene.getObjectByName("leftUpperArm").rotation.z = Math.sin(time) / 2;
+      scene.getObjectByName("leftMiddleArm").rotation.y = -Math.sin(time) / 2;
+      scene.getObjectByName("leftForeArm").rotation.z = Math.sin(time) / 2;
     };
 
-    const moveBody = (time, robot) => {
+    const moveBody = (time, scene) => {
       time /= 2;
-      robot.getObjectByName("body").position.y = Math.sin(time + 1) * 3;
+      scene.getObjectByName("body").position.y = Math.sin(time + 1) * 3;
     };
 
-    const rotateStep = (robot) => {
+    const moveRobot = (scene) => {
       const time = Date.now() * 0.005;
-      moveBody(time, robot);
-      moveFinger(time, robot);
-      moveArm(time, robot);
+      moveBody(time, scene);
+      moveFinger(time, scene);
+      moveArm(time, scene);
     };
 
     const drawHelper = (scene) => {
@@ -353,11 +349,11 @@
     const initLight = (scene) => {
       const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
       ambientLight.castShadow = true;
-
       scene.add(ambientLight);
+
       const light = new THREE.DirectionalLight(0xffffff, 1.4);
       light.translateY(30);
-      light.position.set(5, 100, 0);
+      light.position.set(10, 100, 10);
       light.castShadow = true;
 
       light.shadow.camera.left = -50;
@@ -415,11 +411,10 @@
       controls.enabled = true;
 
       const render = () => {
-        rotateStep(scene, 0.5);
+        moveRobot(scene);
         controls.update();
         renderer.render(scene, camera);
         requestAnimationFrame(render);
-        renderer.updateShadowMap();
       };
       requestAnimationFrame(render);
     };

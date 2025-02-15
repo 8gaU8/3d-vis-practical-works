@@ -288,8 +288,8 @@ const drawHelper = (scene) => {
 }
 
 const initLight = (scene) => {
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-    ambientLight.castShadow = true
+    // const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    // ambientLight.castShadow = true
 
     scene.add(ambientLight);
     const light = new THREE.DirectionalLight(0xffffff, 1.4);
@@ -333,6 +333,9 @@ const initRenderer = () => {
 
 const initRobot = (scene) => {
     const robot = createRobot()
+    const scale = 0.1
+    robot.scale.set(scale, scale, scale)
+    robot.translateZ(-5)
     scene.add(robot)
     console.log(robot)
 }
@@ -359,7 +362,6 @@ const main = (DEBUG_MODE = false) => {
         requestAnimationFrame(render)
         controls.update()
         renderer.render(scene, camera)
-        renderer.updateShadowMap()
     }
     renderer.setAnimationLoop(render);
 
