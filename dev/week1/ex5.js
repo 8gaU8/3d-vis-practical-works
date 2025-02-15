@@ -288,10 +288,10 @@ const drawHelper = (scene) => {
 }
 
 const initLight = (scene) => {
-    // const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-    // ambientLight.castShadow = true
-
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    ambientLight.castShadow = true
     scene.add(ambientLight);
+
     const light = new THREE.DirectionalLight(0xffffff, 1.4);
     light.translateY(30)
     light.position.set(5, 100, 0);
