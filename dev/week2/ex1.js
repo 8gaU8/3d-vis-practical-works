@@ -166,9 +166,9 @@ const _createWheel = (wheelRadius) => {
 
 const createDesk = () => {
     // configure Desk Top
-    const tableTopThickness = 0.02;
-    const tableTopWidth = 2.4;
-    const tableTopHeight = 1;
+    const deskTopThickness = 0.02;
+    const deskTopWidth = 2.4;
+    const deskTopHeight = 1;
     // configure Legs
     const legLength = 0.80;
     const legThickness = 0.05;
@@ -182,9 +182,9 @@ const createDesk = () => {
     const desk = new THREE.Group();
 
     // create desk Top
-    const deskTopGeometry = new THREE.BoxGeometry(tableTopWidth, tableTopThickness, tableTopHeight);
+    const deskTopGeometry = new THREE.BoxGeometry(deskTopWidth, deskTopThickness, deskTopHeight);
     const deskTop = genSolid(deskTopGeometry, COLOR.wall);
-    deskTop.translateY(legLength + tableTopThickness / 2)
+    deskTop.translateY(legLength + deskTopThickness / 2)
     desk.add(deskTop)
 
     // Create Desk Legs
@@ -216,9 +216,9 @@ const createDesk = () => {
     const legGroupL = legGroupR.clone()
 
     // Add legs to the desk
-    legGroupR.translateX(tableTopWidth / 2 * 0.8)
+    legGroupR.translateX(deskTopWidth / 2 * 0.8)
     desk.add(legGroupR)
-    legGroupL.translateX(-tableTopWidth / 2 * 0.8)
+    legGroupL.translateX(-deskTopWidth / 2 * 0.8)
     desk.add(legGroupL)
 
 
