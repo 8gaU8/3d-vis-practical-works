@@ -25,8 +25,8 @@ const initCamera = (cameraType) => {
     {
         const camera = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 0.001, 10000)
         camera.rotation.x = -Math.PI / 3.5
-        camera.position.y = 25
-        camera.position.z = 50
+        camera.position.y = 1
+        camera.position.z = 2
         return camera
 
     } else
@@ -239,14 +239,14 @@ const moveFinger = (time, robot) => {
     robot.getObjectByName("leftFingerTip1").rotation.y = - y * 0.5
     robot.getObjectByName("leftFinger2").rotation.y = y
     robot.getObjectByName("leftFingerTip2").rotation.y = -y * 0.5
-    robot.getObjectByName("leftHand").rotation.x += 0.02
+    robot.getObjectByName("leftHand").rotation.x += 0.002
 
     const yRight = (Math.cos(1.1 * time) + 1) * Math.PI / 4
     robot.getObjectByName("rightFinger1").rotation.y = yRight
     robot.getObjectByName("rightFingerTip1").rotation.y = - yRight * 0.5
     robot.getObjectByName("rightFinger2").rotation.y = yRight
     robot.getObjectByName("rightFingerTip2").rotation.y = -yRight * 0.5
-    robot.getObjectByName("rightHand").rotation.x += 0.03
+    robot.getObjectByName("rightHand").rotation.x += 0.003
 }
 
 const moveArm = (time, robot) => {
@@ -297,13 +297,13 @@ const initLight = (scene) => {
     light.position.set(5, 100, 0);
     light.castShadow = true;
 
-    light.shadow.camera.left = -50;
-    light.shadow.camera.right = 50;
-    light.shadow.camera.top = 50;
-    light.shadow.camera.bottom = -50;
+    light.shadow.camera.left = -5;
+    light.shadow.camera.right = 5;
+    light.shadow.camera.top = 5;
+    light.shadow.camera.bottom = -5;
 
-    light.shadow.mapSize.width = 1024;
-    light.shadow.mapSize.height = 1024;
+    light.shadow.mapSize.width = 512;
+    light.shadow.mapSize.height = 512;
 
     scene.add(light);
     if (DEBUG_MODE)
