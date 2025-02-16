@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { VertexNormalsHelper } from 'three/addons/helpers/VertexNormalsHelper.js';
-import {VRButton} from 'three/addons/webxr/VRButton.js';
+import { VRButton } from 'three/addons/webxr/VRButton.js';
 
 
 const COLOR = {
@@ -38,7 +38,7 @@ const initCamera = (cameraType) => {
 
 const genSolid = (geometry, color) => {
     // const meshMaterial = new THREE.MeshNormalMaterial({ side: THREE.DoubleSide })
-    const meshMaterial = new THREE.MeshStandardMaterial({ color: color})
+    const meshMaterial = new THREE.MeshStandardMaterial({ color: color })
     const solid = new THREE.Mesh(geometry, meshMaterial)
     solid.receiveShadow = true
     solid.castShadow = true;
@@ -110,10 +110,10 @@ const createFingerBase = (length, height, diam) => {
 const createArmBase = (length, height, diam) => {
     const group = new THREE.Group()
 
-    const jointGeo = new THREE.SphereGeometry(diam / 2.0, 12, 8)
+    const jointGeo = new THREE.SphereGeometry(diam / 2.0, 12, 24)
     const jointL = genSolid(jointGeo, COLOR.blue)
 
-    const armBeamGeo = new THREE.CylinderGeometry(diam / 2.0 + 0.5, diam / 2.0 + 0.5, length, 8);
+    const armBeamGeo = new THREE.CylinderGeometry(diam / 2.0 + 0.5, diam / 2.0 + 0.5, length, 24);
     const armBeam = genSolid(armBeamGeo, COLOR.black)
     armBeam.rotateZ(-Math.PI / 2.0)
     armBeam.translateY(height / 2.0)
@@ -132,7 +132,7 @@ const createHand = (left = true) => {
     const fingerLength = 2
     const namePrefex = left ? "left" : "right"
 
-    const cylinderGeo = new THREE.CylinderGeometry(1, 2, 3, 8);
+    const cylinderGeo = new THREE.CylinderGeometry(1, 2, 3, 24);
     const cylinder = genSolid(cylinderGeo, COLOR.black)
     cylinder.rotateZ(Math.PI / 2)
 
@@ -180,7 +180,7 @@ const createArm = (left = true) => {
     const armLength = 5
     const sign = left ? 1 : -1
     const namePrefex = left ? "left" : "right"
-    const shoulderGeo = new THREE.CylinderGeometry(4, 2, 8, 8);
+    const shoulderGeo = new THREE.CylinderGeometry(4, 2, 8, 24);
 
     const shoulder = genSolid(shoulderGeo, 0x3a3f3b)
     shoulder.rotateZ(sign * Math.PI / 4)
@@ -239,27 +239,26 @@ const moveFinger = (time, robot) => {
     robot.getObjectByName("leftFingerTip1").rotation.y = - y * 0.5
     robot.getObjectByName("leftFinger2").rotation.y = y
     robot.getObjectByName("leftFingerTip2").rotation.y = -y * 0.5
-    robot.getObjectByName("leftHand").rotation.x += 0.002
+    robot.getObjectByName("leftHand").rotation.x += 0.02
 
     const yRight = (Math.cos(1.1 * time) + 1) * Math.PI / 4
     robot.getObjectByName("rightFinger1").rotation.y = yRight
     robot.getObjectByName("rightFingerTip1").rotation.y = - yRight * 0.5
     robot.getObjectByName("rightFinger2").rotation.y = yRight
     robot.getObjectByName("rightFingerTip2").rotation.y = -yRight * 0.5
-    robot.getObjectByName("rightHand").rotation.x += 0.003
+    robot.getObjectByName("rightHand").rotation.x += 0.03
 }
 
 const moveArm = (time, robot) => {
 
     time = time * 0.5
     robot.getObjectByName("rightUpperArm").rotation.z = Math.sin(time) / 2
-    robot.getObjectByName("rightMiddleArm").rotation.y = -Math.sin(time) / 2
-    robot.getObjectByName("rightForeArm").rotation.z = Math.sin(time) / 2
-    robot.getObjectByName("rightForeArm").rotation.y = Math.sin(time) / 2
+    robot.getObjectByName("rightMiddleArm").rotation.y = -Math.cos(time * 0.8) / 2
+    robot.getObjectByName("rightForeArm").rotation.z = -Math.sin(time * 1.1) / 2
 
-    robot.getObjectByName("leftUpperArm").rotation.z = Math.sin(time) / 2
-    robot.getObjectByName("leftMiddleArm").rotation.y = -Math.sin(time) / 2
-    robot.getObjectByName("leftForeArm").rotation.z = Math.sin(time) / 2
+    robot.getObjectByName("leftUpperArm").rotation.z = Math.cos(time * 0.9 ) / 2
+    robot.getObjectByName("leftMiddleArm").rotation.y = -Math.sin(time * 1.5 + 3) / 2
+    robot.getObjectByName("leftForeArm").rotation.z = Math.sin(time * 1.1) / 2
 }
 
 const moveBody = (time, robot) => {
