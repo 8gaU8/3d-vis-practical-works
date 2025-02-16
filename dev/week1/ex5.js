@@ -38,7 +38,7 @@ const initCamera = (cameraType) => {
 
 const genSolid = (geometry, color) => {
     // const meshMaterial = new THREE.MeshNormalMaterial({ side: THREE.DoubleSide })
-    const meshMaterial = new THREE.MeshStandardMaterial({ color: color, side: THREE.DoubleSide })
+    const meshMaterial = new THREE.MeshStandardMaterial({ color: color})
     const solid = new THREE.Mesh(geometry, meshMaterial)
     solid.receiveShadow = true
     solid.castShadow = true;
@@ -110,10 +110,10 @@ const createFingerBase = (length, height, diam) => {
 const createArmBase = (length, height, diam) => {
     const group = new THREE.Group()
 
-    const jointGeo = new THREE.SphereGeometry(diam / 2.0, 12, 24)
+    const jointGeo = new THREE.SphereGeometry(diam / 2.0, 12, 8)
     const jointL = genSolid(jointGeo, COLOR.blue)
 
-    const armBeamGeo = new THREE.CylinderGeometry(diam / 2.0 + 0.5, diam / 2.0 + 0.5, length, 24);
+    const armBeamGeo = new THREE.CylinderGeometry(diam / 2.0 + 0.5, diam / 2.0 + 0.5, length, 8);
     const armBeam = genSolid(armBeamGeo, COLOR.black)
     armBeam.rotateZ(-Math.PI / 2.0)
     armBeam.translateY(height / 2.0)
@@ -132,7 +132,7 @@ const createHand = (left = true) => {
     const fingerLength = 2
     const namePrefex = left ? "left" : "right"
 
-    const cylinderGeo = new THREE.CylinderGeometry(1, 2, 3, 24);
+    const cylinderGeo = new THREE.CylinderGeometry(1, 2, 3, 8);
     const cylinder = genSolid(cylinderGeo, COLOR.black)
     cylinder.rotateZ(Math.PI / 2)
 
@@ -180,7 +180,7 @@ const createArm = (left = true) => {
     const armLength = 5
     const sign = left ? 1 : -1
     const namePrefex = left ? "left" : "right"
-    const shoulderGeo = new THREE.CylinderGeometry(4, 2, 8, 24);
+    const shoulderGeo = new THREE.CylinderGeometry(4, 2, 8, 8);
 
     const shoulder = genSolid(shoulderGeo, 0x3a3f3b)
     shoulder.rotateZ(sign * Math.PI / 4)
@@ -293,17 +293,17 @@ const initLight = (scene) => {
     scene.add(ambientLight);
 
     const light = new THREE.DirectionalLight(0xffffff, 1.4);
-    light.translateY(30)
-    light.position.set(5, 100, 0);
+    //light.translateY(30)
+    light.position.set(5, 5, -5);
     light.castShadow = true;
 
-    light.shadow.camera.left = -5;
-    light.shadow.camera.right = 5;
-    light.shadow.camera.top = 5;
-    light.shadow.camera.bottom = -5;
+    light.shadow.camera.left = -2;
+    light.shadow.camera.right = 2;
+    light.shadow.camera.top = 2;
+    light.shadow.camera.bottom = -2;
 
-    light.shadow.mapSize.width = 512;
-    light.shadow.mapSize.height = 512;
+    light.shadow.mapSize.width = 1024;
+    light.shadow.mapSize.height = 1024;
 
     scene.add(light);
     if (DEBUG_MODE)
@@ -316,7 +316,7 @@ const initLight = (scene) => {
 
 const initFloor = (scene) => {
     const meshFloor = new THREE.Mesh(new THREE.BoxGeometry(400, 0.1, 400), new THREE.MeshStandardMaterial());
-    meshFloor.translateY(-20)
+    meshFloor.translateY(0)
     meshFloor.receiveShadow = true;
     scene.add(meshFloor);
 }
@@ -333,9 +333,10 @@ const initRenderer = () => {
 
 const initRobot = (scene) => {
     const robot = createRobot()
-    const scale = 0.1
+    const scale = 0.02
     robot.scale.set(scale, scale, scale)
-    robot.translateZ(-5)
+    robot.translateZ(-1.2)
+    robot.translateY(0.5)
     scene.add(robot)
     console.log(robot)
 }
@@ -359,7 +360,7 @@ const main = (DEBUG_MODE = false) => {
 
     const render = (time) => {
         rotateStep(scene)
-        requestAnimationFrame(render)
+        //requestAnimationFrame(render)
         controls.update()
         renderer.render(scene, camera)
     }
