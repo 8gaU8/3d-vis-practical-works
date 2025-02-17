@@ -1,20 +1,22 @@
 <html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0"
+    />
+    <style>
+      body {
+        margin: 0px;
+        overflow: hidden;
+      }
+    </style>
+  </head>
 
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
-  <style>
-    body {
-      margin: 0px;
-      overflow: hidden;
-    }
-  </style>
-</head>
+  <body>
+    <div id="container"></div>
 
-<body>
-  <div id="container"></div>
-
-  <script id="vertexShader" type="x-shader/x-vertex">
+    <script id="vertexShader" type="x-shader/x-vertex">
       uniform float time;
       varying vec2 vUv;
       void main()
@@ -24,8 +26,7 @@
       }
     </script>
 
-
-  <script id="fragmentShader" type="x-shader/x-fragment">
+    <script id="fragmentShader" type="x-shader/x-fragment">
       uniform float time;
       uniform sampler2D tex;
       varying vec2 vUv;
@@ -50,8 +51,8 @@
 
       }
     </script>
-  <script async src="https://unpkg.com/es-module-shims@1.3.6/dist/es-module-shims.js"></script>
-  <script type="importmap">
+    <script async src="https://unpkg.com/es-module-shims@1.3.6/dist/es-module-shims.js"></script>
+    <script type="importmap">
       {
         "imports": {
           "three": "https://unpkg.com/three@0.172.0/build/three.module.js",
@@ -60,86 +61,73 @@
       }
     </script>
 
-  <script type="module">
-    import * as THREE from "three";
-    import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+    <script type="module">
+      import * as THREE from 'three'
+      import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 
-    let container;
-    let camera, scene, renderer, controls;
-    let uniforms, material, mesh;
-    let windowHalfX = window.innerWidth / 2;
-    let windowHalfY = window.innerHeight / 2;
+      let container
+      let camera, scene, renderer, controls
+      let uniforms, material, mesh
+      let windowHalfX = window.innerWidth / 2
+      let windowHalfY = window.innerHeight / 2
 
-    var startTime;
-    var textureForShader;
-    var textureLoader = new THREE.TextureLoader();
+      var startTime
+      var textureForShader
+      var textureLoader = new THREE.TextureLoader()
 
-    textureLoader.load("../resources/stars.jpg", function (texture)
-    {
-      textureForShader = texture;
-      init();
-      startTime = Date.now();
-      animate();
-    });
+      textureLoader.load('../resources/stars.jpg', function (texture) {
+        textureForShader = texture
+        init()
+        startTime = Date.now()
+        animate()
+      })
 
-    function init()
-    {
-      container = document.getElementById("container");
-      scene = new THREE.Scene();
+      function init() {
+        container = document.getElementById('container')
+        scene = new THREE.Scene()
 
-      uniforms = {
-        time: { type: "f", value: 1.0 },
-        tex: { type: "t", value: textureForShader },
-      };
+        uniforms = {
+          time: { type: 'f', value: 1.0 },
+          tex: { type: 't', value: textureForShader },
+        }
 
-      material = new THREE.ShaderMaterial({
-        uniforms: uniforms,
-        vertexShader: document.getElementById("vertexShader").textContent,
-        fragmentShader: document.getElementById("fragmentShader").textContent,
-      });
+        material = new THREE.ShaderMaterial({
+          uniforms: uniforms,
+          vertexShader: document.getElementById('vertexShader').textContent,
+          fragmentShader: document.getElementById('fragmentShader').textContent,
+        })
 
-      var geometry = new THREE.PlaneGeometry(1, 1, 200, 200);
+        var geometry = new THREE.PlaneGeometry(1, 1, 200, 200)
 
-      mesh = new THREE.Mesh(geometry, material);
-      // mesh.material.side = THREE.DoubleSide;
-      // mesh.rotation.x = Math.PI / 2.0;
-      // mesh.rotation.z = Math.PI;
+        mesh = new THREE.Mesh(geometry, material)
+        // mesh.material.side = THREE.DoubleSide;
+        // mesh.rotation.x = Math.PI / 2.0;
+        // mesh.rotation.z = Math.PI;
 
-      scene.add(mesh);
+        scene.add(mesh)
 
-      renderer = new THREE.WebGLRenderer();
-      renderer.setPixelRatio(
-        window.devicePixelRatio ? window.devicePixelRatio : 1
-      );
-      container.appendChild(renderer.domElement);
+        renderer = new THREE.WebGLRenderer()
+        renderer.setPixelRatio(window.devicePixelRatio ? window.devicePixelRatio : 1)
+        container.appendChild(renderer.domElement)
 
-      console.log(renderer);
-      camera = new THREE.PerspectiveCamera(
-        60,
-        window.innerWidth / window.innerHeight,
-        0.1,
-        200
-      );
-      camera.position.set(0, 0, 1);
+        console.log(renderer)
+        camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 200)
+        camera.position.set(0, 0, 1)
 
+        renderer.setSize(window.innerWidth, window.innerHeight)
+      }
 
-      renderer.setSize(window.innerWidth, window.innerHeight);
-    }
+      function animate() {
+        requestAnimationFrame(animate)
+        render()
+      }
 
-    function animate()
-    {
-      requestAnimationFrame(animate);
-      render();
-    }
-
-    function render()
-    {
-      var elapsedMilliseconds = Date.now() - startTime;
-      var elapsedSeconds = elapsedMilliseconds / 1000;
-      uniforms.time.value = elapsedSeconds;
-      renderer.render(scene, camera);
-    }
-  </script>
-</body>
-
+      function render() {
+        var elapsedMilliseconds = Date.now() - startTime
+        var elapsedSeconds = elapsedMilliseconds / 1000
+        uniforms.time.value = elapsedSeconds
+        renderer.render(scene, camera)
+      }
+    </script>
+  </body>
 </html>

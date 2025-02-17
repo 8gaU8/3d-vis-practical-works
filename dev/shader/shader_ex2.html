@@ -1,51 +1,53 @@
 <html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0"
+    />
+    <style>
+      body {
+        margin: 0px;
+        overflow: hidden;
+      }
+    </style>
+  </head>
 
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-  <style>
-    body {
-      margin: 0px;
-      overflow: hidden;
-    }
-  </style>
-</head>
+  <body>
+    <div id="container"></div>
 
-<body>
-  <div id="container"></div>
+    <script id="vertexShader" type="x-shader/x-vertex">
+      uniform float time;
+      uniform vec2 resolution;
+      void main()	{
+          gl_Position = projectionMatrix * modelViewMatrix * vec4 (position, 1.0);
+      }
+    </script>
 
-  <script id="vertexShader" type="x-shader/x-vertex">
-        uniform float time;
-        uniform vec2 resolution;
-        void main()	{
-            gl_Position = projectionMatrix * modelViewMatrix * vec4 (position, 1.0);
-        }
-  </script>
+    <script id="fragmentShaderCircle" type="x-shader/x-fragment">
+      uniform float time;
+      uniform vec2 resolution;
 
-  <script id="fragmentShaderCircle" type="x-shader/x-fragment">
-        uniform float time;
-        uniform vec2 resolution;
+      float calcDist(float x, float y) {
+        float modx = mod(time + gl_FragCoord.x, x) - x/2.;
+        float mody = mod(time + gl_FragCoord.y, y) - y/2.;
+        float dist = sqrt(modx * modx + mody * mody);
+        return dist;
+      }
 
-        float calcDist(float x, float y) {
-          float modx = mod(time + gl_FragCoord.x, x) - x/2.;
-          float mody = mod(time + gl_FragCoord.y, y) - y/2.;
-          float dist = sqrt(modx * modx + mody * mody);
-          return dist;
-        }
-
-        void main()	{
-          if (calcDist(20., 20.) < 5.){
-            gl_FragColor = vec4(1., 0., 0., 1.);
-            return;
-          }
-
-          gl_FragColor = vec4(0., 0., 0., 1.);
+      void main()	{
+        if (calcDist(20., 20.) < 5.){
+          gl_FragColor = vec4(1., 0., 0., 1.);
           return;
         }
-  </script>
 
-  <script async src="https://unpkg.com/es-module-shims@1.3.6/dist/es-module-shims.js"></script>
-  <script type="importmap">
+        gl_FragColor = vec4(0., 0., 0., 1.);
+        return;
+      }
+    </script>
+
+    <script async src="https://unpkg.com/es-module-shims@1.3.6/dist/es-module-shims.js"></script>
+    <script type="importmap">
       {
         "imports": {
           "three": "https://unpkg.com/three@0.172.0/build/three.module.js",
@@ -54,70 +56,67 @@
       }
     </script>
 
-  <script type="module">
-    import * as THREE from 'three';
-    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-    
-    var container;
-    var camera, scene, renderer, controls;
-    var uniforms, material, mesh;
-    var windowHalfX = window.innerWidth / 2;
-    var windowHalfY = window.innerHeight / 2;
+    <script type="module">
+      import * as THREE from 'three'
+      import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 
-    init();
-    var startTime = Date.now();
-    animate();
+      var container
+      var camera, scene, renderer, controls
+      var uniforms, material, mesh
+      var windowHalfX = window.innerWidth / 2
+      var windowHalfY = window.innerHeight / 2
 
-    function init() {
-      container = document.getElementById('container');
-      scene = new THREE.Scene();
+      init()
+      var startTime = Date.now()
+      animate()
 
-      uniforms = {
-        time: { type: "f", value: 1.0 },
-        resolution: { type: "v2", value: new THREE.Vector2() }
-      };
+      function init() {
+        container = document.getElementById('container')
+        scene = new THREE.Scene()
 
-      material = new THREE.ShaderMaterial({
-        uniforms: uniforms,
-        vertexShader: document.getElementById('vertexShader').textContent,
-        fragmentShader: document.getElementById('fragmentShaderCircle').textContent
-      });
+        uniforms = {
+          time: { type: 'f', value: 1.0 },
+          resolution: { type: 'v2', value: new THREE.Vector2() },
+        }
 
-      mesh = new THREE.Mesh(new THREE.BoxGeometry(), material);
-      mesh.material.side = THREE.DoubleSide;
-      mesh.rotation.x = Math.PI / 2.0;
+        material = new THREE.ShaderMaterial({
+          uniforms: uniforms,
+          vertexShader: document.getElementById('vertexShader').textContent,
+          fragmentShader: document.getElementById('fragmentShaderCircle').textContent,
+        })
 
-      scene.add(mesh);
+        mesh = new THREE.Mesh(new THREE.BoxGeometry(), material)
+        mesh.material.side = THREE.DoubleSide
+        mesh.rotation.x = Math.PI / 2.0
 
-      renderer = new THREE.WebGLRenderer();
-      renderer.setPixelRatio(window.devicePixelRatio ? window.devicePixelRatio : 1);
-      container.appendChild(renderer.domElement);
+        scene.add(mesh)
 
-      camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 2000);
-      camera.position.set(0, 1, 2);
+        renderer = new THREE.WebGLRenderer()
+        renderer.setPixelRatio(window.devicePixelRatio ? window.devicePixelRatio : 1)
+        container.appendChild(renderer.domElement)
 
-      controls = new OrbitControls(camera, renderer.domElement);
+        camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 2000)
+        camera.position.set(0, 1, 2)
 
-      uniforms.resolution.value.x = window.innerWidth;
-      uniforms.resolution.value.y = window.innerHeight;
-      renderer.setSize(window.innerWidth, window.innerHeight);
-    }
+        controls = new OrbitControls(camera, renderer.domElement)
 
-    function animate()
-    {
-      requestAnimationFrame(animate);
-      controls.update();
-      render();
-    }
+        uniforms.resolution.value.x = window.innerWidth
+        uniforms.resolution.value.y = window.innerHeight
+        renderer.setSize(window.innerWidth, window.innerHeight)
+      }
 
-    function render()
-    {
-      var elapsedMilliseconds = Date.now() - startTime;
-      var elapsedSeconds = elapsedMilliseconds / 1000.;
-      uniforms.time.value = 60. * elapsedSeconds;
-      renderer.render(scene, camera);
-    }
-  </script>
-</body>
+      function animate() {
+        requestAnimationFrame(animate)
+        controls.update()
+        render()
+      }
 
+      function render() {
+        var elapsedMilliseconds = Date.now() - startTime
+        var elapsedSeconds = elapsedMilliseconds / 1000
+        uniforms.time.value = 60 * elapsedSeconds
+        renderer.render(scene, camera)
+      }
+    </script>
+  </body>
 </html>
