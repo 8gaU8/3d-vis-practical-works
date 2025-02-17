@@ -1,23 +1,45 @@
 import * as THREE from 'three';
-import { MapControls } from 'three/addons/controls/MapControls.js';
 import { VertexNormalsHelper } from 'three/addons/helpers/VertexNormalsHelper.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-const COLOR = {
+// parameters
+
+const color = {
     black: 0x3a3f3b,
     blue: 0x74bed6,
-    floor: 0x4a4A4B,
-    wall: 0xfcfbfb,
+    floor: 0x888888,
+    wall: 0xffffff,
     gray: 0xaaaaaa,
     black: 0x3a3f3b,
+    yellow: 0xf0e303,
+    green: 0x93ff70,
+    red: 0xf03373
 }
 
+const deskParams = {
+    deskTopThickness: 0.02,
+    deskTopWidth: 1.4,
+    deskTopHeight: 0.7,
+    legLength: 0.80,
+    legThickness: 0.05,
+    arcHeight: 0.05,
+    arcWidth: 0.3,
+    wheelRadius: 0.03,
+    wheelPosZ: 0.27 // archWidth - wheelRadius
+};
+
+const roomParams = {
+    wallWidth: 0.1,
+    roomHeight: 3,
+    roomWidth: 7,
+    roomDepth: 10,
+}
 
 
 const initCamera = (cameraType) => {
     if (cameraType === THREE.OrthographicCamera)
     {
-        const frustumSize = 100;
+        const frustumSize = 10;
         const aspect = window.innerWidth / window.innerHeight;
         const camera = new THREE.OrthographicCamera(
             frustumSize * aspect / - 2,
@@ -34,7 +56,7 @@ const initCamera = (cameraType) => {
 
     } else if (cameraType === THREE.PerspectiveCamera)
     {
-        const camera = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 0.1, 1000)
+        const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000)
         camera.rotation.x = -Math.PI / 3.5
         camera.position.y = 2
         camera.position.z = 5
@@ -48,49 +70,54 @@ const initCamera = (cameraType) => {
 }
 
 const genSolid = (geometry, color) => {
-    const meshMaterial = new THREE.MeshStandardMaterial({ color: color })
-    // const meshMaterial = new THREE.MeshNormalMaterial()
+    const meshMaterial = new THREE.MeshPhongMaterial({ color: color, reflectivity: 1, refractionRatio: 0.5, shininess: 100 });
     const solid = new THREE.Mesh(geometry, meshMaterial)
     solid.receiveShadow = true
     solid.castShadow = true;
-
     return solid
 }
 
 const createRoomBox = () => {
-    const wallWidth = 0.1
-    const roomWidth = 6;
-    const roomHeight = 3;
-    const roomDepth = 10;
+    const {
+        wallWidth,
+        roomHeight,
+        roomWidth,
+        roomDepth
+    } = roomParams;
 
     const room = new THREE.Group();
 
     const floorGeometry = new THREE.BoxGeometry(roomWidth, wallWidth, roomDepth);
-    const floor = genSolid(floorGeometry, COLOR.floor);
+    const floor = genSolid(floorGeometry, color.floor);
     room.add(floor)
+
+    const ceilGeometry = floorGeometry.clone()
+    const ceil = genSolid(ceilGeometry, color.wall);
+    ceil.translateY(roomHeight)
+    // room.add(ceil)
 
     const wallGeometry = new THREE.BoxGeometry(roomWidth, roomHeight, wallWidth);
 
-    const backWall = genSolid(wallGeometry, COLOR.wall);
+    const backWall = genSolid(wallGeometry, color.wall);
     backWall.translateZ(-roomDepth / 2 - wallWidth / 2)
     backWall.translateY(roomHeight / 2)
     room.add(backWall)
 
-    const frontWall = genSolid(wallGeometry, COLOR.wall);
+    const frontWall = genSolid(wallGeometry, color.wall);
     frontWall.translateZ(roomDepth / 2 + wallWidth / 2)
     frontWall.translateY(roomHeight / 2)
-    // room.add(frontWall)
+    room.add(frontWall)
 
     const sideWallGeometry = new THREE.BoxGeometry(wallWidth, roomHeight, roomDepth);
-    const leftWall = genSolid(sideWallGeometry, COLOR.wall);
+    const leftWall = genSolid(sideWallGeometry, color.wall);
     leftWall.translateX(-roomWidth / 2 - wallWidth / 2)
     leftWall.translateY(roomHeight / 2)
-    // room.add(leftWall)
+    room.add(leftWall)
 
-    const rightWall = genSolid(sideWallGeometry, COLOR.wall);
+    const rightWall = genSolid(sideWallGeometry, color.wall);
     rightWall.translateX(roomWidth / 2 + wallWidth / 2)
     rightWall.translateY(roomHeight / 2)
-    // room.add(rightWall)
+    room.add(rightWall)
 
     room.receiveShadow = true;
     room.translateY(-wallWidth / 2);
@@ -141,21 +168,22 @@ const _createArcLegGeometry = (archHeight, archWidth) => {
 }
 
 const _createWheel = (wheelRadius) => {
+    // wheel for desks
     const axisRadius = wheelRadius / 1.5;
     const axisThickness = 0.02;
     const axisWheelGeometry = new THREE.CylinderGeometry(axisRadius, axisRadius, axisThickness, 16);
     axisWheelGeometry.rotateZ(Math.PI / 2)
 
-    const axisWheel = genSolid(axisWheelGeometry, COLOR.black);
+    const axisWheel = genSolid(axisWheelGeometry, color.black);
 
     const wheelThickness = 0.02;
     const wheelGeometry = new THREE.CylinderGeometry(wheelRadius, wheelRadius, wheelThickness, 16);
     new THREE.RingGeometry()
     wheelGeometry.rotateZ(Math.PI / 2)
 
-    const wheel1 = genSolid(wheelGeometry, COLOR.gray);
+    const wheel1 = genSolid(wheelGeometry, color.gray);
     wheel1.translateX(- wheelThickness);
-    const wheel2 = genSolid(wheelGeometry, COLOR.gray);
+    const wheel2 = genSolid(wheelGeometry, color.gray);
     wheel2.translateX(wheelThickness);
 
     axisWheel.add(wheel1)
@@ -165,25 +193,23 @@ const _createWheel = (wheelRadius) => {
 
 
 const createDesk = () => {
-    // configure Desk Top
-    const deskTopThickness = 0.02;
-    const deskTopWidth = 2.4;
-    const deskTopHeight = 1;
-    // configure Legs
-    const legLength = 0.80;
-    const legThickness = 0.05;
-    // configure Arc leg
-    const archHeight = 0.05;
-    const archWidth = 0.45;
-    // configure Wheels
-    const wheelRadius = 0.03;
-    const wheelPosZ = archWidth - wheelRadius
+    const {
+        deskTopThickness,
+        deskTopWidth,
+        deskTopHeight,
+        legLength,
+        legThickness,
+        arcHeight,
+        arcWidth,
+        wheelRadius,
+        wheelPosZ
+    } = deskParams;
 
     const desk = new THREE.Group();
 
     // create desk Top
     const deskTopGeometry = new THREE.BoxGeometry(deskTopWidth, deskTopThickness, deskTopHeight);
-    const deskTop = genSolid(deskTopGeometry, COLOR.wall);
+    const deskTop = genSolid(deskTopGeometry, color.wall);
     deskTop.translateY(legLength + deskTopThickness / 2)
     desk.add(deskTop)
 
@@ -192,23 +218,23 @@ const createDesk = () => {
 
     // Main beam
     const legBeamGeometry = new THREE.CylinderGeometry(legThickness / 2, legThickness / 2, legLength, 32);
-    const legBeam = genSolid(legBeamGeometry, COLOR.wall);
+    const legBeam = genSolid(legBeamGeometry, color.wall);
     legBeam.translateY(legLength / 2)
     legGroupR.add(legBeam)
 
     // Arc leg
-    const arcLegBase = genSolid(_createArcLegGeometry(archHeight, archWidth), COLOR.wall);
-    arcLegBase.translateY(-archHeight)
+    const arcLegBase = genSolid(_createArcLegGeometry(arcHeight, arcWidth), color.wall);
+    arcLegBase.translateY(-arcHeight)
     legGroupR.add(arcLegBase)
 
     // wheels
     const wheelFront = _createWheel(wheelRadius);
-    wheelFront.translateY(-archHeight - wheelRadius)
+    wheelFront.translateY(-arcHeight - wheelRadius)
     wheelFront.translateZ(wheelPosZ)
     legGroupR.add(wheelFront)
 
     const wheelBack = _createWheel(wheelRadius);
-    wheelBack.translateY(-archHeight - wheelRadius)
+    wheelBack.translateY(-arcHeight - wheelRadius)
     wheelBack.translateZ(-wheelPosZ)
     legGroupR.add(wheelBack)
 
@@ -221,8 +247,7 @@ const createDesk = () => {
     legGroupL.translateX(-deskTopWidth / 2 * 0.8)
     desk.add(legGroupL)
 
-
-    desk.translateY(archHeight + wheelRadius * 2)
+    desk.translateY(arcHeight + wheelRadius * 2)
 
     return desk
 }
@@ -242,30 +267,32 @@ const drawHelper = (scene) => {
 }
 
 const initLight = (scene) => {
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
-    ambientLight.castShadow = true
-    scene.add(ambientLight);
-
-    const light = new THREE.DirectionalLight(0xffffff, 2);
-    light.translateY(30)
-    light.position.set(10, 100, 10);
-    light.castShadow = true;
-
-    const size = 10;
-    light.shadow.camera.left = -size;
-    light.shadow.camera.right = size;
-    light.shadow.camera.top = size;
-    light.shadow.camera.bottom = -size;
-
-    const mapSize = 4048;
-    light.shadow.mapSize.width = mapSize;
-    light.shadow.mapSize.height = mapSize;
-
-    scene.add(light);
-    if (DEBUG_MODE)
+    const useNormalLights = false;
+    if (!useNormalLights)
     {
-        const lightHelper = new THREE.CameraHelper(light.shadow.camera)
-        scene.add(lightHelper)
+
+        const intensity = 1.2;
+        const decay = 0.1;
+        const dist = 4.;
+        for (let i = -3; i <= 3; i += 3)
+        {
+            for (let j = -3; j <= 3; j += 3)
+            {
+                const light = new THREE.PointLight(0xffffff, intensity, dist, decay); // 色、強度、距離
+                light.castShadow = true;
+                light.translateX(j * 0.8)
+                light.translateY(roomParams.roomHeight - 0.1)
+                light.translateZ(i)
+                light.name = 'light'
+                scene.add(light);
+                if (DEBUG_MODE)
+                {
+                    const lightHelper = new THREE.CameraHelper(light.shadow.camera)
+                    scene.add(lightHelper)
+                }
+            }
+        }
+
     }
 }
 
@@ -278,64 +305,107 @@ const initRenderer = () => {
     return renderer
 }
 
+const makeCone = () => {
+    const geometry = new THREE.ConeGeometry(0.1, 0.4, 32);
+    const material = new THREE.MeshLambertMaterial({
+        color: color.yellow,
+    });
+    const cone = new THREE.Mesh(geometry, material);
+    cone.translateY(0.2)
+    cone.receiveShadow = true;
+    return cone
+}
+
+const makeCylinder = () => {
+    const geometry = new THREE.CylinderGeometry(0.1, 0.1, 0.3, 32);
+    const material = new THREE.MeshPhongMaterial({
+        color: color.green,
+        specular: 0xe60000,
+        shininess: 100,
+        reflectivity: 1,
+        refractionRatio: 0.5,
+    });
+    const cylinder = new THREE.Mesh(geometry, material);
+    cylinder.translateY(0.15)
+    cylinder.receiveShadow = true;
+    return cylinder
+}
+
+const makeSphere = () => {
+    const geometry = new THREE.SphereGeometry(0.1, 32, 32);
+    const material = new THREE.MeshPhysicalMaterial({
+        color: color.red,
+        roughness: 0.5,
+        metalness: 1,
+        reflectivity: 1,
+
+    });
+    const sphere = new THREE.Mesh(geometry, material);
+    sphere.translateY(0.1)
+    sphere.receiveShadow = true;
+    return sphere
+}
+
+
 
 const initRoom = (scene) => {
     const room = createRoomBox();
     scene.add(room);
 
-    const desk1 = createDesk();
-    desk1.name = "Desk1";
-    desk1.translateZ(-3);
-    desk1.translateX(-1.25)
-    scene.add(desk1);
+    const createDeskGroup = (name, nbDesk = 2) => {
+        const deskGroup = new THREE.Group();
+        deskGroup.name = name + "DeskGroup";
 
-    const desk11 = createDesk();
-    desk11.name = "Desk11";
-    desk11.translateZ(-3);
-    desk11.translateX(1.25)
-    scene.add(desk11);
+        const deskMergin = 0.01;
+        for (let i = 0; i < nbDesk; i++)
+        {
+            const desk = createDesk();
+            desk.name = name + "Desk" + i;
+            desk.translateX(i * (deskParams.deskTopWidth + deskMergin))
+            deskGroup.add(desk);
+        }
+        deskGroup.translateX(-nbDesk / 2 * (deskParams.deskTopWidth + deskMergin) + deskMergin / 2 + deskParams.deskTopWidth / 2)
+        return deskGroup
+    }
 
-    const desk3 = createDesk();
-    desk3.name = "Desk3";
-    desk3.translateX(-1.8);
-    desk3.translateZ(-1);
-    desk3.rotateY(Math.PI / 2);
-    scene.add(desk3);
+    const frontDeskGroup = createDeskGroup("Back", 2);
+    frontDeskGroup.translateZ(2);
+    scene.add(frontDeskGroup);
 
-    const desk4 = createDesk();
-    desk4.name = "Desk4";
-    desk4.translateX(-1.8);
-    desk4.translateZ(1.5);
-    desk4.rotateY(Math.PI / 2);
-    scene.add(desk4);
+    const leftDeskGroup = createDeskGroup("Left", 4);
+    leftDeskGroup.rotateY(Math.PI / 2);
+    leftDeskGroup.translateZ(0.3)
+    leftDeskGroup.translateX(-1.6);
+    scene.add(leftDeskGroup);
 
-    const desk5 = createDesk();
-    desk5.name = "Desk5";
-    desk5.translateX(1.8);
-    desk5.translateZ(-1);
-    desk5.rotateY(-Math.PI / 2);
-    scene.add(desk5);
-
-    const desk6 = createDesk()
-    desk6.name = "Desk6";
-    desk6.translateX(1.8);
-    desk6.translateZ(1.5);
-    desk6.rotateY(-Math.PI / 2);
-    scene.add(desk6);
+    const rightDeskGroup = createDeskGroup("Right", 4);
+    rightDeskGroup.rotateY(Math.PI / 2);
+    rightDeskGroup.translateZ(3.9)
+    rightDeskGroup.translateX(-1.6);
+    scene.add(rightDeskGroup);
 
 
-}
+    const { deskTopThickness, legLength, arcHeight, wheelRadius } = deskParams;
 
+    const ypos = legLength + deskTopThickness + arcHeight + wheelRadius * 2;
+    const cone = makeCone()
+    cone.name = 'Cone on Desk6'
+    cone.translateY(ypos);
+    cone.translateX(0.5);
+    frontDeskGroup.add(cone);
 
+    const cylinder = makeCylinder()
+    cylinder.name = 'Cylinder on rightDeskGroup'
+    cylinder.translateY(ypos);
+    cylinder.translateZ(0.2)
+    frontDeskGroup.add(cylinder);
 
-const moveStep = (scene)=>{
-    const time = Date.now() * 0.005
-    const xpos = Math.sin(time) * 2
-    const zpos = Math.cos(time*2) 
+    const sphere = makeSphere()
+    sphere.name = 'Sphere on rightDeskGroup'
+    sphere.translateY(ypos);
+    sphere.translateX(-0.5);
+    frontDeskGroup.add(sphere);
 
-    scene.getObjectByName("Desk").rotation.y = time
-    scene.getObjectByName("Desk").position.x = xpos
-    scene.getObjectByName("Desk").position.z = zpos
 }
 
 const main = (DEBUG_MODE = false) => {
@@ -354,7 +424,6 @@ const main = (DEBUG_MODE = false) => {
     controls.enabled = true
 
     const render = () => {
-        // moveStep(scene)
         controls.update()
         renderer.render(scene, camera)
         requestAnimationFrame(render)
@@ -363,5 +432,5 @@ const main = (DEBUG_MODE = false) => {
 }
 
 
-const DEBUG_MODE = true;
+const DEBUG_MODE = false;
 main(DEBUG_MODE)
