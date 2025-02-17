@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
   <head>
     <meta charset="utf-8" />
@@ -62,7 +62,7 @@
 
     function makeInstance(texture, geometry, color, x) {
       const material = new THREE.MeshBasicMaterial({
-        color: color,
+        color,
         map: texture,
         side: THREE.DoubleSide,
       });
@@ -70,7 +70,7 @@
       const cube = new THREE.Mesh(geometry, material);
 
       cube.position.x = x;
-      return { cube: cube };
+      return { cube };
     }
 
     // transform functions
@@ -170,7 +170,7 @@
       camera.position.y = 5;
       camera.position.x = 2;
 
-      var controls = new OrbitControls(camera, renderer.domElement);
+      const controls = new OrbitControls(camera, renderer.domElement);
       controls.listenToKeyEvents(window); // optional
 
       const scene = new THREE.Scene();

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
   <head>
     <meta charset="utf-8" />
@@ -51,7 +51,6 @@
         floor: 0x888888,
         wall: 0xffffff,
         gray: 0xaaaaaa,
-        black: 0x3a3f3b,
         yellow: 0xf0e303,
         green: 0x93ff70,
         red: 0xf03373,
@@ -92,7 +91,8 @@
           camera.position.y = 10;
           camera.position.z = 100;
           return camera;
-        } else if (cameraType === THREE.PerspectiveCamera) {
+        }
+        if (cameraType === THREE.PerspectiveCamera) {
           const camera = new THREE.PerspectiveCamera(
             50,
             window.innerWidth / window.innerHeight,
@@ -103,15 +103,13 @@
           camera.position.y = 2;
           camera.position.z = 5;
           return camera;
-        } else {
-          console.error("Unknown camera type");
-          return null;
         }
+        return null;
       };
 
-      const genSolid = (geometry, color) => {
+      const genSolid = (geometry, solidColor) => {
         const meshMaterial = new THREE.MeshPhongMaterial({
-          color: color,
+          color: solidColor,
           reflectivity: 1,
           refractionRatio: 0.5,
           shininess: 100,
@@ -418,12 +416,12 @@
 
         const createDeskGroup = (name, nbDesk = 2) => {
           const deskGroup = new THREE.Group();
-          deskGroup.name = name + "DeskGroup";
+          deskGroup.name = `${name}DeskGroup`;
 
           const deskMergin = 0.01;
           for (let i = 0; i < nbDesk; i++) {
             const desk = createDesk();
-            desk.name = name + "Desk" + i;
+            desk.name = `${name}Desk${i}`;
             desk.translateX(i * (deskParams.deskTopWidth + deskMergin));
             deskGroup.add(desk);
           }

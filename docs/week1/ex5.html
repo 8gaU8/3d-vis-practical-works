@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
   <head>
     <meta charset="utf-8" />
@@ -67,7 +67,8 @@
         camera.position.y = 10;
         camera.position.z = 10;
         return camera;
-      } else if (cameraType === THREE.PerspectiveCamera) {
+      }
+      if (cameraType === THREE.PerspectiveCamera) {
         const camera = new THREE.PerspectiveCamera(
           100,
           window.innerWidth / window.innerHeight,
@@ -78,15 +79,14 @@
         camera.position.y = 1;
         camera.position.z = 2;
         return camera;
-      } else {
-        console.error("Unknown camera type");
-        return null;
       }
+
+      return null;
     };
 
     const genSolid = (geometry, color) => {
       // const meshMaterial = new THREE.MeshNormalMaterial({ side: THREE.DoubleSide })
-      const meshMaterial = new THREE.MeshStandardMaterial({ color: color });
+      const meshMaterial = new THREE.MeshStandardMaterial({ color });
       const solid = new THREE.Mesh(geometry, meshMaterial);
       solid.receiveShadow = true;
       solid.castShadow = true;
@@ -198,7 +198,7 @@
       );
       finger1.translateX(2.5);
       finger1.translateY(1);
-      finger1.name = namePrefex + "Finger1";
+      finger1.name = `${namePrefex}Finger1`;
 
       const fingerTip1 = createFingerBase(
         fingerLength,
@@ -206,7 +206,7 @@
         fingerThickness,
       );
       fingerTip1.translateX(fingerLength);
-      fingerTip1.name = namePrefex + "FingerTip1";
+      fingerTip1.name = `${namePrefex}FingerTip1`;
       finger1.add(fingerTip1);
       finger1.rotateX(Math.PI / 2);
 
@@ -217,7 +217,7 @@
       );
       finger2.translateX(2.5);
       finger2.translateY(-1);
-      finger2.name = namePrefex + "Finger2";
+      finger2.name = `${namePrefex}Finger2`;
       finger2.rotateX(-Math.PI / 2);
 
       const fingerTip2 = createFingerBase(
@@ -226,7 +226,7 @@
         fingerThickness,
       );
       fingerTip2.translateX(fingerLength);
-      fingerTip2.name = namePrefex + "FingerTip2";
+      fingerTip2.name = `${namePrefex}FingerTip2`;
       finger2.add(fingerTip2);
 
       const palmBase = new THREE.Group();
@@ -234,7 +234,7 @@
       palmBase.add(box);
       palmBase.add(finger1);
       palmBase.add(finger2);
-      palmBase.name = namePrefex + "Hand";
+      palmBase.name = `${namePrefex}Hand`;
       return palmBase;
     };
 
@@ -251,13 +251,13 @@
       shoulder.rotateX(Math.PI / 4);
       shoulder.translateY(7);
       shoulder.translateX(-sign * 4);
-      shoulder.name = namePrefex + "Shoulder";
+      shoulder.name = `${namePrefex}Shoulder`;
 
       const upperArm = createArmBase(armLength, armHeight, armDiam);
       upperArm.rotateZ(Math.PI / 2);
       upperArm.rotateX(Math.PI / 2);
       upperArm.translateX(armLength);
-      upperArm.name = namePrefex + "UpperArm";
+      upperArm.name = `${namePrefex}UpperArm`;
       shoulder.add(upperArm);
 
       const middleArm = createArmBase(armLength, armHeight, armDiam);
@@ -266,7 +266,7 @@
       middleArm.translateZ(1 * armLength);
       middleArm.rotateX(Math.PI / 2);
       middleArm.rotateZ(Math.PI / 2);
-      middleArm.name = namePrefex + "MiddleArm";
+      middleArm.name = `${namePrefex}MiddleArm`;
       upperArm.add(middleArm);
 
       const foreArm = createArmBase(armLength, armHeight, armDiam);
@@ -275,7 +275,7 @@
       foreArm.translateZ(1 * armLength);
       foreArm.rotateY(-Math.PI / 2);
       foreArm.rotateX(Math.PI / 2);
-      foreArm.name = namePrefex + "ForeArm";
+      foreArm.name = `${namePrefex}ForeArm`;
       middleArm.add(foreArm);
 
       const hand = createHand(left);
@@ -314,7 +314,7 @@
     };
 
     const moveArm = (time, robot) => {
-      time = time * 0.5;
+      time *= 0.5;
       robot.getObjectByName("rightUpperArm").rotation.z = Math.sin(time) / 2;
       robot.getObjectByName("rightMiddleArm").rotation.y =
         -Math.cos(time * 0.8) / 2;
@@ -358,7 +358,7 @@
       scene.add(ambientLight);
 
       const light = new THREE.DirectionalLight(0xffffff, 1.4);
-      //light.translateY(30)
+      // light.translateY(30)
       light.position.set(5, 5, -5);
       light.castShadow = true;
 
@@ -424,7 +424,7 @@
 
       const render = (time) => {
         rotateStep(scene);
-        //requestAnimationFrame(render)
+        // requestAnimationFrame(render)
         controls.update();
         renderer.render(scene, camera);
       };

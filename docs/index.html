@@ -10,59 +10,39 @@
           "https://github.com/8gaU8/3d-vis-practical-works/tree/main/docs/";
         const exercises = [
           {
-            week: "Shader",
-            ex: 1,
-            html: "/shader/shader_ex1.html",
-          },
-          {
-            week: "Shader",
-            ex: 2,
-            html: "/shader/shader_ex2.html",
-          },
-          {
-            week: "Shader",
-            ex: 3,
-            html: "/shader/shader_ex3.html",
-          },
-          {
-            week: "Shader",
-            ex: 4,
-            html: "/shader/shader_ex4.html",
-          },
-          {
-            week: "Week 2",
-            ex: 1,
-            html: "/week2/ex1.html",
-          },
-          {
-            week: "Week 1",
+            week: 1,
             ex: 1,
             html: "/week1/ex1.html",
           },
           {
-            week: "Week 2",
-            ex: 2,
-            html: "/week2/ex2.html",
-          },
-          {
-            week: "Week 1",
+            week: 1,
             ex: 2,
             html: "/week1/ex2.html",
           },
           {
-            week: "Week 1",
+            week: 1,
             ex: 3,
             html: "/week1/ex3.html",
           },
           {
-            week: "Week 1",
+            week: 1,
             ex: 4,
             html: "/week1/ex4.html",
           },
           {
-            week: "Week 1",
+            week: 1,
             ex: 5,
             html: "/week1/ex5.html",
+          },
+          {
+            week: 2,
+            ex: 1,
+            html: "/week2/ex1.html",
+          },
+          {
+            week: 2,
+            ex: 2,
+            html: "/week2/ex2.html",
           },
         ];
         const listContainer = document.getElementById("exercise-list");
@@ -71,7 +51,7 @@
           const li = document.createElement("li");
           if (prevHeader !== week) {
             const header = document.createElement("h2");
-            header.textContent = week;
+            header.textContent = "Week " + week;
             listContainer.appendChild(header);
             prevHeader = week;
           }
@@ -79,7 +59,7 @@
           const htmlLink = document.createElement("a");
           htmlLink.href = `./${html}`;
 
-          htmlLink.textContent = `${week} - Exercise ${ex} (HTML)`;
+          htmlLink.textContent = `Week ${week} - Exercise ${ex} (HTML)`;
           li.appendChild(htmlLink);
 
           const ghLink = document.createElement("a");

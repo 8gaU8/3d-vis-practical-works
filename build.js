@@ -27,23 +27,22 @@ for (const file of resourceFiles)
 const ghRepoLink = "https://github.com/8gaU8/3d-vis-practical-works/tree/main/docs/";
 
 // `dev/` 以下の `.html` ファイルをすべてスキャン
-const exerciseFiles = glob.sync(`${devDir}/**/*.html`);
+const exerciseFiles = glob.sync(`${devDir}/week*/*.html`);
 const exercises = exerciseFiles.map((file) => {
-  const match = file.match(/week(\d+)\/ex(\d+)\.html$/) || file.match(/shader\/shader_ex(\d+)\.html$/);
+  const match = file.match(/week(\d+)\/ex(\d+)\.html$/);
 
   if (!match) return null;
 
   return {
-    week: match[2] ? `Week ${Number(match[1])}` : "Shader",
-    ex: Number(match[2] || match[1]),
+    week: Number(match[1]),
+    ex: Number(match[2]),
     html: `/${file.replace(`${devDir}/`, "")}`,
   };
 }).filter(Boolean);
 
 // **week, ex の順にソート**
 exercises.sort((a, b) => {
-  if (a.week === "Shader") return -1;  // Shader を後ろに配置
-  if (b.week === "Shader") return 1;
+  console.log(a, b)
   return (a.week - b.week) || (a.ex - b.ex);
 });
 
@@ -57,7 +56,7 @@ const mainJsContent = `document.addEventListener("DOMContentLoaded", () => {
         const li = document.createElement("li");
         if (prevHeader !== week){
             const header = document.createElement("h2");
-            header.textContent = week;
+            header.textContent = 'Week ' + week;
             listContainer.appendChild(header);
             prevHeader = week;
         }
@@ -65,7 +64,7 @@ const mainJsContent = `document.addEventListener("DOMContentLoaded", () => {
         const htmlLink = document.createElement("a");
         htmlLink.href = \`./\${html}\`;
 
-        htmlLink.textContent = \`\${week} - Exercise \${ex} (HTML)\`;
+        htmlLink.textContent = \`\Week \${week} - Exercise \${ex} (HTML)\`;
         li.appendChild(htmlLink);
 
         const ghLink = document.createElement("a");

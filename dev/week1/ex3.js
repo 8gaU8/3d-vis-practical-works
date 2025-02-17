@@ -1,238 +1,217 @@
-import * as THREE from 'three';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import * as THREE from 'three'
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 
 function reverseBaseindices(baseIndices) {
-    const reversed = [];
-    for (let i = 0; i < baseIndices.length; i += 3)
-    {
-        reversed.push(baseIndices[i]);
-        reversed.push(baseIndices[i + 2]);
-        reversed.push(baseIndices[i + 1]);
-    }
-    return reversed;
+  const reversed = []
+  for (let i = 0; i < baseIndices.length; i += 3) {
+    reversed.push(baseIndices[i])
+    reversed.push(baseIndices[i + 2])
+    reversed.push(baseIndices[i + 1])
+  }
+  return reversed
 }
 
-const baseIndices = [
-    0, 1, 9, 0, 9, 7,
-    2, 3, 10, 2, 10, 1,
-    11, 3, 4, 4, 5, 11,
-    8, 5, 6, 7, 8, 6,
-];
+const baseIndices = [0, 1, 9, 0, 9, 7, 2, 3, 10, 2, 10, 1, 11, 3, 4, 4, 5, 11, 8, 5, 6, 7, 8, 6]
 
 const reversedIndices = reverseBaseindices(baseIndices)
 
 function makeInstance(texture, geometry, color, x) {
-    const material = new THREE.MeshBasicMaterial(
-        {
-            color: color,
-            map: texture,
-            side: THREE.DoubleSide,
-        }
-    );
+  const material = new THREE.MeshBasicMaterial({
+    color,
+    map: texture,
+    side: THREE.DoubleSide,
+  })
 
-    const cube = new THREE.Mesh(geometry, material);
+  const cube = new THREE.Mesh(geometry, material)
 
-    cube.position.x = x;
-    return { cube: cube };
+  cube.position.x = x
+  return { cube }
 }
 
-
 // transform functions
-const toFront = p => [p[0], p[1], MAX_SIZE];
-const toRight = p => [MAX_SIZE, p[1], p[0]];
-const toBack = p => [MAX_SIZE - p[0], p[1], 0];
-const toLeft = p => [0, p[1], MAX_SIZE - p[0]];
-const toTop = p => [p[0], MAX_SIZE, p[1]];
-const toBottom = p => [MAX_SIZE - p[0], 0, MAX_SIZE - p[1]];
+const toFront = (p) => [p[0], p[1], MAX_SIZE]
+const toRight = (p) => [MAX_SIZE, p[1], p[0]]
+const toBack = (p) => [MAX_SIZE - p[0], p[1], 0]
+const toLeft = (p) => [0, p[1], MAX_SIZE - p[0]]
+const toTop = (p) => [p[0], MAX_SIZE, p[1]]
+const toBottom = (p) => [MAX_SIZE - p[0], 0, MAX_SIZE - p[1]]
 
-const MAX_SIZE = 4;
+const MAX_SIZE = 4
 // normal
 const normalsDef = {
-    front: [0, 0, 1],
-    right: [1, 0, 0],
-    back: [0, 0, -1],
-    left: [-1, 0, 0],
-    top: [0, 1, 0],
-    bottom: [0, -1, 0],
-};
+  front: [0, 0, 1],
+  right: [1, 0, 0],
+  back: [0, 0, -1],
+  left: [-1, 0, 0],
+  top: [0, 1, 0],
+  bottom: [0, -1, 0],
+}
 
 // definition of front panel
 const frontVertices = [
-    { pos: [0, 0], uv: [0, 0] },    // 0
-    { pos: [2.8, 0], uv: [0.7, 0] },  // 1
-    { pos: [4, 0], uv: [1, 0] },    // 2
-    { pos: [4, 2.8], uv: [1, 0.7] },  // 3
-    { pos: [4, 4], uv: [1, 1] },    // 4
-    { pos: [1.2, 4], uv: [0.3, 1] },  // 5
-    { pos: [0, 4], uv: [0, 1] },    // 6
-    { pos: [0, 1.2], uv: [0, 0.3] },  // 7
-    { pos: [1.2, 1.2], uv: [0.3, 0.3] },// 8
-    { pos: [2.8, 1.2], uv: [0.7, 0.3] },// 9
-    { pos: [2.8, 2.8], uv: [0.7, 0.7] },// 10
-    { pos: [1.2, 2.8], uv: [0.3, 0.7] },// 11
-];
+  { pos: [0, 0], uv: [0, 0] }, // 0
+  { pos: [2.8, 0], uv: [0.7, 0] }, // 1
+  { pos: [4, 0], uv: [1, 0] }, // 2
+  { pos: [4, 2.8], uv: [1, 0.7] }, // 3
+  { pos: [4, 4], uv: [1, 1] }, // 4
+  { pos: [1.2, 4], uv: [0.3, 1] }, // 5
+  { pos: [0, 4], uv: [0, 1] }, // 6
+  { pos: [0, 1.2], uv: [0, 0.3] }, // 7
+  { pos: [1.2, 1.2], uv: [0.3, 0.3] }, // 8
+  { pos: [2.8, 1.2], uv: [0.7, 0.3] }, // 9
+  { pos: [2.8, 2.8], uv: [0.7, 0.7] }, // 10
+  { pos: [1.2, 2.8], uv: [0.3, 0.7] }, // 11
+]
 
 function generateFaceVertices(baseVertices, transformFn, normal) {
-    return baseVertices.map(v => ({
-        pos: transformFn(v.pos),
-        uv: v.uv.slice(),
-        norm: normal.slice(),
-    }));
+  return baseVertices.map((v) => ({
+    pos: transformFn(v.pos),
+    uv: v.uv.slice(),
+    norm: normal.slice(),
+  }))
 }
 
-const indexSize = Math.max(...baseIndices) + 1;
+const indexSize = Math.max(...baseIndices) + 1
 
 const panelSettings = {
-    front: {
-        transform: toFront,
-        normal: normalsDef.front,
-        indices: baseIndices,
-        indexOffset: 0
-    },
-    right: {
-        transform: toRight,
-        normal: normalsDef.right,
-        indices: reversedIndices,
-        indexOffset: indexSize * 1
-    },
-    back: {
-        transform: toBack,
-        normal: normalsDef.back,
-        indices: baseIndices,
-        indexOffset: indexSize * 2
-    },
-    left: {
-        transform: toLeft,
-        normal: normalsDef.left,
-        indices: reversedIndices,
-        indexOffset: indexSize * 3
-    },
-    top: {
-        transform: toTop,
-        normal: normalsDef.top,
-        indices: reversedIndices,
-        indexOffset: indexSize * 4
-    },
-    bottom: {
-        transform: toBottom,
-        normal: normalsDef.bottom,
-        indices: baseIndices,
-        indexOffset: indexSize * 5
-    },
+  front: {
+    transform: toFront,
+    normal: normalsDef.front,
+    indices: baseIndices,
+    indexOffset: 0,
+  },
+  right: {
+    transform: toRight,
+    normal: normalsDef.right,
+    indices: reversedIndices,
+    indexOffset: indexSize * 1,
+  },
+  back: {
+    transform: toBack,
+    normal: normalsDef.back,
+    indices: baseIndices,
+    indexOffset: indexSize * 2,
+  },
+  left: {
+    transform: toLeft,
+    normal: normalsDef.left,
+    indices: reversedIndices,
+    indexOffset: indexSize * 3,
+  },
+  top: {
+    transform: toTop,
+    normal: normalsDef.top,
+    indices: reversedIndices,
+    indexOffset: indexSize * 4,
+  },
+  bottom: {
+    transform: toBottom,
+    normal: normalsDef.bottom,
+    indices: baseIndices,
+    indexOffset: indexSize * 5,
+  },
 }
 
 function main() {
-    const canvas = document.querySelector('#c');
-    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+  const canvas = document.querySelector('#c')
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true })
 
-    const fov = 75;
-    const aspect = 2;  // the canvas default
-    const near = 0.1;
-    const far = 100;
-    const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-    camera.position.z = 10;
-    camera.position.y = 5;
-    camera.position.x = 2;
+  const fov = 75
+  const aspect = 2 // the canvas default
+  const near = 0.1
+  const far = 100
+  const camera = new THREE.PerspectiveCamera(fov, aspect, near, far)
+  camera.position.z = 10
+  camera.position.y = 5
+  camera.position.x = 2
 
-    var controls = new OrbitControls(camera, renderer.domElement);
-    controls.listenToKeyEvents(window); // optional
+  const controls = new OrbitControls(camera, renderer.domElement)
+  controls.listenToKeyEvents(window) // optional
 
-    const scene = new THREE.Scene();
+  const scene = new THREE.Scene()
 
-    scene.background = new THREE.Color(0x333333);
+  scene.background = new THREE.Color(0x333333)
 
-    {
-        const color = 0xFFFFFF;
-        const intensity = 1;
-        const light = new THREE.DirectionalLight(color, intensity);
-        light.position.set(-1, 2, 4);
-        scene.add(light);
+  {
+    const color = 0xffffff
+    const intensity = 1
+    const light = new THREE.DirectionalLight(color, intensity)
+    light.position.set(-1, 2, 4)
+    scene.add(light)
+  }
+
+  let indices = []
+  let vertices = []
+  const allFaces = ['front', 'right', 'back', 'left', 'top', 'bottom']
+  for (const faceName of allFaces) {
+    const face = panelSettings[faceName]
+    const faceVertices = generateFaceVertices(frontVertices, face.transform, face.normal)
+    vertices = vertices.concat(faceVertices)
+    indices = indices.concat(face.indices.map((i) => i + face.indexOffset))
+  }
+
+  const numVertices = vertices.length
+  const positionNumComponents = 3
+  const normalNumComponents = 3
+  const uvNumComponents = 2
+  const positions = new Float32Array(numVertices * positionNumComponents)
+  const normals = new Float32Array(numVertices * normalNumComponents)
+  const uvs = new Float32Array(numVertices * uvNumComponents)
+  let posNdx = 0
+  let nrmNdx = 0
+  let uvNdx = 0
+  for (const vertex of vertices) {
+    positions.set(vertex.pos, posNdx)
+    normals.set(vertex.norm, nrmNdx)
+    uvs.set(vertex.uv, uvNdx)
+    posNdx += positionNumComponents
+    nrmNdx += normalNumComponents
+    uvNdx += uvNumComponents
+  }
+
+  const geometry = new THREE.BufferGeometry()
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions, positionNumComponents))
+  geometry.setAttribute('normal', new THREE.BufferAttribute(normals, normalNumComponents))
+  geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, uvNumComponents))
+  geometry.setIndex(indices)
+
+  const loader = new THREE.TextureLoader()
+  const texture = loader.load('../resources/grenouille.jpg')
+
+  const cubes = [
+    makeInstance(texture, geometry, 0x00ff00, 0),
+    makeInstance(texture, geometry, 0xff0000, 5),
+    makeInstance(texture, geometry, 0x0000ff, -5),
+  ]
+
+  for (const cube of cubes) {
+    scene.add(cube.cube)
+  }
+
+  function resizeRendererToDisplaySize(renderer) {
+    const canvas = renderer.domElement
+    const width = canvas.clientWidth
+    const height = canvas.clientHeight
+    const needResize = canvas.width !== width || canvas.height !== height
+    if (needResize) {
+      renderer.setSize(width, height, false)
+    }
+    return needResize
+  }
+
+  function render(time) {
+    if (resizeRendererToDisplaySize(renderer)) {
+      const canvas = renderer.domElement
+      camera.aspect = canvas.clientWidth / canvas.clientHeight
+      camera.updateProjectionMatrix()
     }
 
-    let indices = [];
-    let vertices = [];
-    const allFaces = ['front', 'right', 'back', 'left', 'top', 'bottom'];
-    for (const faceName of allFaces)
-    {
-        const face = panelSettings[faceName];
-        const faceVertices = generateFaceVertices(frontVertices, face.transform, face.normal);
-        vertices = vertices.concat(faceVertices);
-        indices = indices.concat(face.indices.map(i => i + face.indexOffset));
-    }
+    controls.update() // only required if controls.enableDamping = true, or if controls.autoRotate = true
+    renderer.render(scene, camera)
+    requestAnimationFrame(render)
+  }
 
-    const numVertices = vertices.length;
-    const positionNumComponents = 3;
-    const normalNumComponents = 3;
-    const uvNumComponents = 2;
-    const positions = new Float32Array(numVertices * positionNumComponents);
-    const normals = new Float32Array(numVertices * normalNumComponents);
-    const uvs = new Float32Array(numVertices * uvNumComponents);
-    let posNdx = 0;
-    let nrmNdx = 0;
-    let uvNdx = 0;
-    for (const vertex of vertices)
-    {
-        positions.set(vertex.pos, posNdx);
-        normals.set(vertex.norm, nrmNdx);
-        uvs.set(vertex.uv, uvNdx);
-        posNdx += positionNumComponents;
-        nrmNdx += normalNumComponents;
-        uvNdx += uvNumComponents;
-    }
-
-    const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute(
-        'position',
-        new THREE.BufferAttribute(positions, positionNumComponents));
-    geometry.setAttribute(
-        'normal',
-        new THREE.BufferAttribute(normals, normalNumComponents));
-    geometry.setAttribute(
-        'uv',
-        new THREE.BufferAttribute(uvs, uvNumComponents));
-    geometry.setIndex(indices);
-
-    const loader = new THREE.TextureLoader();
-    const texture = loader.load('../resources/grenouille.jpg');
-
-    const cubes = [
-        makeInstance(texture, geometry, 0x00FF00, 0),
-        makeInstance(texture, geometry, 0xFF0000, 5),
-        makeInstance(texture, geometry, 0x0000FF, -5),
-    ];
-
-    for (const cube of cubes)
-    {
-        scene.add(cube.cube)
-    }
-
-    function resizeRendererToDisplaySize(renderer) {
-        const canvas = renderer.domElement;
-        const width = canvas.clientWidth;
-        const height = canvas.clientHeight;
-        const needResize = canvas.width !== width || canvas.height !== height;
-        if (needResize)
-        {
-            renderer.setSize(width, height, false);
-        }
-        return needResize;
-    }
-
-    function render(time) {
-
-        if (resizeRendererToDisplaySize(renderer))
-        {
-            const canvas = renderer.domElement;
-            camera.aspect = canvas.clientWidth / canvas.clientHeight;
-            camera.updateProjectionMatrix();
-        }
-
-        controls.update(); // only required if controls.enableDamping = true, or if controls.autoRotate = true
-        renderer.render(scene, camera);
-        requestAnimationFrame(render);
-    }
-
-    requestAnimationFrame(render);
+  requestAnimationFrame(render)
 }
 
-main();
+main()
