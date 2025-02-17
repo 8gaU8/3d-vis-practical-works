@@ -1,3 +1,5 @@
+/* eslint-disable import/no-unresolved */
+/* eslint-disable import/extensions */
 import * as THREE from 'three'
 import { VertexNormalsHelper } from 'three/addons/helpers/VertexNormalsHelper.js'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
@@ -5,16 +7,19 @@ import GUI from 'lil-gui'
 
 // parameters
 
+const DEBUG_MODE = false
+
 const color = {
+  white: 0xffffff,
   black: 0x3a3f3b,
   blue: 0x74bed6,
   floor: 0x888888,
   wall: 0xffffff,
   gray: 0xaaaaaa,
-  black: 0x3a3f3b,
   yellow: 0xf0e303,
   green: 0x93ff70,
   red: 0xf03373,
+  specularRed: 0xe60000,
 }
 
 const deskParams = {
@@ -65,16 +70,21 @@ const initCamera = (cameraType) => {
     camera.position.z = 5
     return camera
   }
-  console.error('Unknown camera type')
   return null
 }
 
-const genSolid = (geometry, color) => {
-  const meshMaterial = new THREE.MeshPhongMaterial({
-    color,
+const genSolid = (geometry, solidColor) => {
+  // const meshMaterial = new THREE.MeshPhongMaterial({
+  //   color: solidColor,
+  //   reflectivity: 1,
+  //   // refractionRatio: 0.5,
+  //   shininess: 100,
+  // })
+  const meshMaterial = new THREE.MeshPhysicalMaterial({
+    color: solidColor,
+    roughness: 1.0,
+    metalness: 0,
     reflectivity: 1,
-    refractionRatio: 0.5,
-    shininess: 100,
   })
   const solid = new THREE.Mesh(geometry, meshMaterial)
   solid.receiveShadow = true
@@ -125,11 +135,10 @@ const createRoomBox = () => {
 
   room.receiveShadow = true
   room.translateY(-wallWidth / 2)
-  console.log(room)
   return room
 }
 
-const _createArcLegGeometry = (archHeight, archWidth) => {
+const createArcLegGeometry = (archHeight, archWidth) => {
   // Arc curve
   const curve = new THREE.CatmullRomCurve3([
     new THREE.Vector3(0, 0, -archWidth),
@@ -142,7 +151,7 @@ const _createArcLegGeometry = (archHeight, archWidth) => {
   const rx = 0.05 // radius of x-axis
   const ry = 0.015 // radius of y-axis
   const segments = 32
-  for (let i = 0; i < segments; i++) {
+  for (let i = 0; i < segments; i += 1) {
     const theta = (i / segments) * Math.PI * 2
     // formula of ellipse: x = rx * cos(theta), y = ry * sin(theta)
     const x = rx * Math.cos(theta)
@@ -168,7 +177,7 @@ const _createArcLegGeometry = (archHeight, archWidth) => {
   return arcLegGeometry
 }
 
-const _createWheel = (wheelRadius) => {
+const createWheel = (wheelRadius) => {
   // wheel for desks
   const axisRadius = wheelRadius / 1.5
   const axisThickness = 0.02
@@ -179,7 +188,6 @@ const _createWheel = (wheelRadius) => {
 
   const wheelThickness = 0.02
   const wheelGeometry = new THREE.CylinderGeometry(wheelRadius, wheelRadius, wheelThickness, 16)
-  new THREE.RingGeometry()
   wheelGeometry.rotateZ(Math.PI / 2)
 
   const wheel1 = genSolid(wheelGeometry, color.gray)
@@ -228,17 +236,17 @@ const createDesk = () => {
   legGroupR.add(legBeam)
 
   // Arc leg
-  const arcLegBase = genSolid(_createArcLegGeometry(arcHeight, arcWidth), color.wall)
+  const arcLegBase = genSolid(createArcLegGeometry(arcHeight, arcWidth), color.wall)
   arcLegBase.translateY(-arcHeight)
   legGroupR.add(arcLegBase)
 
   // wheels
-  const wheelFront = _createWheel(wheelRadius)
+  const wheelFront = createWheel(wheelRadius)
   wheelFront.translateY(-arcHeight - wheelRadius)
   wheelFront.translateZ(wheelPosZ)
   legGroupR.add(wheelFront)
 
-  const wheelBack = _createWheel(wheelRadius)
+  const wheelBack = createWheel(wheelRadius)
   wheelBack.translateY(-arcHeight - wheelRadius)
   wheelBack.translateZ(-wheelPosZ)
   legGroupR.add(wheelBack)
@@ -263,7 +271,7 @@ const drawHelper = (scene) => {
   scene.traverse((object) => {
     if (object instanceof THREE.Mesh) {
       const helper = new VertexNormalsHelper(object, 1, 0x00ff00)
-      // scene.add(helper)
+      scene.add(helper)
     }
   })
 }
@@ -315,7 +323,7 @@ const makeCylinder = () => {
   const geometry = new THREE.CylinderGeometry(0.1, 0.1, 0.3, 32)
   const material = new THREE.MeshPhongMaterial({
     color: color.green,
-    specular: 0xe60000,
+    specular: color.specularRed,
     shininess: 100,
     reflectivity: 1,
     refractionRatio: 0.5,
@@ -349,7 +357,7 @@ const initRoom = (scene) => {
     deskGroup.name = `${name}DeskGroup`
 
     const deskMergin = 0.01
-    for (let i = 0; i < nbDesk; i++) {
+    for (let i = 0; i < nbDesk; i += 1) {
       const desk = createDesk()
       desk.name = `${name}Desk${i}`
       desk.translateX(i * (deskParams.deskTopWidth + deskMergin))
@@ -416,7 +424,7 @@ const initGUI = (scene) => {
   gui.addColor(obj, 'leftWall')
 }
 
-const main = (DEBUG_MODE = false) => {
+const main = () => {
   const scene = new THREE.Scene()
 
   const renderer = initRenderer()
@@ -440,5 +448,4 @@ const main = (DEBUG_MODE = false) => {
   requestAnimationFrame(render)
 }
 
-const DEBUG_MODE = false
-main(DEBUG_MODE)
+main()
