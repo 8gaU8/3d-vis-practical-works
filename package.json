@@ -4,8 +4,8 @@
   "main": "index.js",
   "scripts": {
     "build": "npm run fix; node build.js",
-    "format": "prettier --write dev/**/*.js",
-    "lint": "eslint --fix dev/**/*.js",
+    "format": "prettier --write dev/week2/*.js",
+    "lint": "eslint --fix dev/week2/*.js",
     "fix": "npm run format && npm run lint"
   },
   "keywords": [],
@@ -14,17 +14,18 @@
   "type": "commonjs",
   "description": "Realtime 3DXR visualization Practical Works",
   "devDependencies": {
+    "@types/three": "^0.173.0",
     "eslint": "^8.57.1",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-import": "^2.31.0",
     "glob": "^11.0.1",
     "globals": "^15.15.0",
-    "lil-gui": "^0.20.0",
     "prettier": "^3.5.1",
     "vite": "^6.1.0"
   },
   "dependencies": {
+    "lil-gui": "^0.20.0",
     "three": "^0.173.0",
     "three-addons": "^1.2.0"
   }
