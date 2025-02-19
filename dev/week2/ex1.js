@@ -9,6 +9,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 const DEBUG_MODE = false
 
 const color = {
+  white: 0xffffff,
   black: 0x3a3f3b,
   blue: 0x74bed6,
   floor: 0x888888,
@@ -72,11 +73,11 @@ const initCamera = (cameraType) => {
 }
 
 const genSolid = (geometry, solidColor) => {
-  const meshMaterial = new THREE.MeshPhongMaterial({
+  const meshMaterial = new THREE.MeshPhysicalMaterial({
     color: solidColor,
+    roughness: 1.0,
+    metalness: 0,
     reflectivity: 1,
-    refractionRatio: 0.5,
-    shininess: 100,
   })
   const solid = new THREE.Mesh(geometry, meshMaterial)
   solid.receiveShadow = true
@@ -103,22 +104,26 @@ const createRoomBox = () => {
   const backWall = genSolid(wallGeometry, color.wall)
   backWall.translateZ(-roomDepth / 2 - wallWidth / 2)
   backWall.translateY(roomHeight / 2)
+  backWall.name = 'backWall'
   room.add(backWall)
 
   const frontWall = genSolid(wallGeometry, color.wall)
   frontWall.translateZ(roomDepth / 2 + wallWidth / 2)
   frontWall.translateY(roomHeight / 2)
+  frontWall.name = 'frontWall'
   room.add(frontWall)
 
   const sideWallGeometry = new THREE.BoxGeometry(wallWidth, roomHeight, roomDepth)
   const leftWall = genSolid(sideWallGeometry, color.wall)
   leftWall.translateX(-roomWidth / 2 - wallWidth / 2)
   leftWall.translateY(roomHeight / 2)
+  leftWall.name = 'leftWall'
   room.add(leftWall)
 
   const rightWall = genSolid(sideWallGeometry, color.wall)
   rightWall.translateX(roomWidth / 2 + wallWidth / 2)
   rightWall.translateY(roomHeight / 2)
+  rightWall.name = 'rightWall'
   room.add(rightWall)
 
   room.receiveShadow = true
@@ -265,27 +270,26 @@ const drawHelper = (scene) => {
 }
 
 const initLight = (scene) => {
-  const useNormalLights = false
-  if (!useNormalLights) {
-    const intensity = 1.2
-    const decay = 0.1
-    const dist = 4
-    for (let i = -3; i <= 3; i += 3) {
-      for (let j = -3; j <= 3; j += 3) {
-        const light = new THREE.PointLight(0xffffff, intensity, dist, decay) // 色、強度、距離
-        light.castShadow = true
-        light.translateX(j * 0.8)
-        light.translateY(roomParams.roomHeight - 0.1)
-        light.translateZ(i)
-        light.name = 'light'
-        scene.add(light)
-        if (DEBUG_MODE) {
-          const lightHelper = new THREE.CameraHelper(light.shadow.camera)
-          scene.add(lightHelper)
-        }
+  const intensity = 1.2
+  const decay = 0.1
+  const dist = 4
+  for (let i = -3; i <= 3; i += 3) {
+    for (let j = -3; j <= 3; j += 3) {
+      const light = new THREE.PointLight(0xffffff, intensity, dist, decay) // 色、強度、距離
+      light.castShadow = true
+      light.translateX(j * 0.8)
+      light.translateY(roomParams.roomHeight - 0.3)
+      light.translateZ(i)
+      light.name = 'light'
+      scene.add(light)
+      if (DEBUG_MODE) {
+        const lightHelper = new THREE.CameraHelper(light.shadow.camera)
+        scene.add(lightHelper)
       }
     }
   }
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.2) // soft white light
+  scene.add(ambientLight)
 }
 
 const initRenderer = () => {
@@ -304,6 +308,7 @@ const makeCone = () => {
   const cone = new THREE.Mesh(geometry, material)
   cone.translateY(0.2)
   cone.receiveShadow = true
+  cone.castShadow = true
   return cone
 }
 
@@ -319,6 +324,7 @@ const makeCylinder = () => {
   const cylinder = new THREE.Mesh(geometry, material)
   cylinder.translateY(0.15)
   cylinder.receiveShadow = true
+  cylinder.castShadow = true
   return cylinder
 }
 
@@ -333,6 +339,7 @@ const makeSphere = () => {
   const sphere = new THREE.Mesh(geometry, material)
   sphere.translateY(0.1)
   sphere.receiveShadow = true
+  sphere.castShadow = true
   return sphere
 }
 
@@ -399,6 +406,7 @@ const initRoom = (scene) => {
 
 const main = () => {
   const scene = new THREE.Scene()
+  scene.background = new THREE.Color(0xffffff)
 
   const renderer = initRenderer()
   initRoom(scene)

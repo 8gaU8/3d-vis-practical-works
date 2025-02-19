@@ -277,24 +277,28 @@ const drawHelper = (scene) => {
 }
 
 const initLight = (scene) => {
-  const useNormalLights = false
-  if (!useNormalLights) {
-    const intensity = 1.2
-    const decay = 0.1
-    const dist = 4
-    for (let i = -3; i <= 3; i += 3) {
-      for (let j = -3; j <= 3; j += 3) {
-        const light = new THREE.PointLight(0xffffff, intensity, dist, decay) // 色、強度、距離
-        light.castShadow = true
-        light.translateX(j * 0.8)
-        light.translateY(roomParams.roomHeight - 0.1)
-        light.translateZ(i)
-        light.name = 'light'
-        scene.add(light)
-        if (DEBUG_MODE) {
-          const lightHelper = new THREE.CameraHelper(light.shadow.camera)
-          scene.add(lightHelper)
-        }
+  const intensity = 1.2
+  const decay = 0.1
+  const dist = 4
+  for (let i = -3; i <= 3; i += 3) {
+    for (let j = -3; j <= 3; j += 3) {
+      const light = new THREE.PointLight(0xffffff, intensity, dist, decay) // 色、強度、距離
+      light.castShadow = true
+      light.translateX(j * 0.8)
+      light.translateY(roomParams.roomHeight - 0.3)
+      light.translateZ(i)
+      light.name = 'light'
+      const size = 0.1
+      light.shadow.camera.left = -size
+      light.shadow.camera.right = size
+      light.shadow.camera.top = size
+      light.shadow.camera.bottom = -size
+      light.shadow.mapSize.width = 1024
+      light.shadow.mapSize.height = 1024
+      scene.add(light)
+      if (DEBUG_MODE) {
+        const lightHelper = new THREE.CameraHelper(light.shadow.camera)
+        scene.add(lightHelper)
       }
     }
   }
@@ -316,6 +320,7 @@ const makeCone = () => {
   const cone = new THREE.Mesh(geometry, material)
   cone.translateY(0.2)
   cone.receiveShadow = true
+  cone.castShadow = true
   return cone
 }
 
@@ -331,6 +336,7 @@ const makeCylinder = () => {
   const cylinder = new THREE.Mesh(geometry, material)
   cylinder.translateY(0.15)
   cylinder.receiveShadow = true
+  cylinder.castShadow = true
   return cylinder
 }
 
@@ -345,6 +351,7 @@ const makeSphere = () => {
   const sphere = new THREE.Mesh(geometry, material)
   sphere.translateY(0.1)
   sphere.receiveShadow = true
+  sphere.castShadow = true
   return sphere
 }
 
