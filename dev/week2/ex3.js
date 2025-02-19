@@ -389,7 +389,7 @@ class LightController {
 
     this.light = this.directional
     this.initLight()
-    this.initThisGUI()
+    this.initGUI()
     this.changeGUI('Directional Light')
 
     this.posX = 0
@@ -414,7 +414,7 @@ class LightController {
     this.scene.add(this.light)
   }
 
-  initThisGUI() {
+  initGUI() {
     const directionalLightCtrl = this.rootGui.addFolder('Directional Light')
     directionalLightCtrl.addColor(this.directional, 'color')
     directionalLightCtrl.add(this.directional, 'intensity', 0, 10)
@@ -534,6 +534,9 @@ const initGUI = (scene) => {
 
 const main = () => {
   const scene = new THREE.Scene()
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.3)
+  ambientLight.name = 'ambientLight'
+  scene.add(ambientLight)
 
   const renderer = initRenderer()
   initRoom(scene)
