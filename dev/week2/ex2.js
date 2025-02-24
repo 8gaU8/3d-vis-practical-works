@@ -5,7 +5,7 @@ import GUI from 'lil-gui'
 
 // parameters
 
-const DEBUG_MODE = true
+const DEBUG_MODE = false
 
 const color = {
   white: 0xffffff,
