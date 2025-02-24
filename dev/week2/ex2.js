@@ -1,5 +1,3 @@
-/* eslint-disable import/no-unresolved */
-/* eslint-disable import/extensions */
 import * as THREE from 'three'
 import { VertexNormalsHelper } from 'three/addons/helpers/VertexNormalsHelper.js'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
@@ -7,7 +5,7 @@ import GUI from 'lil-gui'
 
 // parameters
 
-const DEBUG_MODE = false
+const DEBUG_MODE = true
 
 const color = {
   white: 0xffffff,
@@ -83,8 +81,8 @@ const genSolid = (geometry, solidColor) => {
   const meshMaterial = new THREE.MeshPhysicalMaterial({
     color: solidColor,
     roughness: 1.0,
-    metalness: 0,
-    reflectivity: 1,
+    metalness: 1.0,
+    reflectivity: 0,
   })
   const solid = new THREE.Mesh(geometry, meshMaterial)
   solid.receiveShadow = true
@@ -416,8 +414,7 @@ const initRoom = (scene) => {
   frontDeskGroup.add(sphere)
 }
 
-const initGUI = (scene) => {
-  const gui = new GUI()
+const initWallGUI = (scene, rootGUI) => {
   const obj = {
     backWall: scene.getObjectByName('backWall').material.color,
     frontWall: scene.getObjectByName('frontWall').material.color,
@@ -425,10 +422,16 @@ const initGUI = (scene) => {
     leftWall: scene.getObjectByName('leftWall').material.color,
   }
 
-  gui.addColor(obj, 'backWall')
-  gui.addColor(obj, 'frontWall')
-  gui.addColor(obj, 'rightWall')
-  gui.addColor(obj, 'leftWall')
+  rootGUI.addColor(obj, 'backWall')
+  rootGUI.addColor(obj, 'frontWall')
+  rootGUI.addColor(obj, 'rightWall')
+  rootGUI.addColor(obj, 'leftWall')
+}
+
+const initGUI = (scene) => {
+  const gui = new GUI()
+  const rootGUI = gui.addFolder('Room')
+  initWallGUI(scene, rootGUI)
 }
 
 const main = () => {
