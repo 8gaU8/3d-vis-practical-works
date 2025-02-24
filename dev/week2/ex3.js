@@ -1,5 +1,3 @@
-/* eslint-disable import/no-unresolved */
-/* eslint-disable import/extensions */
 import * as THREE from 'three'
 import { VertexNormalsHelper } from 'three/addons/helpers/VertexNormalsHelper.js'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
@@ -386,7 +384,9 @@ class LightController {
     this.point = new THREE.PointLight(0xffffff, 1, 10)
     this.spot = new THREE.SpotLight(0xffffff, 1)
     this.hemisphere = new THREE.HemisphereLight(0xffffbb, 0x080820, 1)
+  }
 
+  init() {
     this.light = this.directional
     this.initLight()
     this.initGUI()
@@ -466,7 +466,6 @@ class LightController {
   changeGUI(lightType) {
     this.lightNames.forEach((lightName) => {
       this.rootGui.children.forEach((gui) => {
-        // eslint-disable-next-line no-underscore-dangle
         if (gui._title === lightName) {
           if (lightName === lightType) {
             gui.show()
@@ -498,23 +497,27 @@ class LightController {
     this.changeGUI(lightType)
   }
 }
+const initWallGUI = (scene, rootGUI) => {
+  const obj = {
+    backWall: scene.getObjectByName('backWall').material.color,
+    frontWall: scene.getObjectByName('frontWall').material.color,
+    rightWall: scene.getObjectByName('rightWall').material.color,
+    leftWall: scene.getObjectByName('leftWall').material.color,
+  }
+
+  rootGUI.addColor(obj, 'backWall')
+  rootGUI.addColor(obj, 'frontWall')
+  rootGUI.addColor(obj, 'rightWall')
+  rootGUI.addColor(obj, 'leftWall')
+}
 
 const initGUI = (scene) => {
   // root
   const rootGui = new GUI()
 
   // Controller for wall color
-  const colorCtrl = rootGui.addFolder('Wall Color')
-  const obj = {
-    'Back Wall': scene.getObjectByName('backWall').material.color,
-    'Front Wall': scene.getObjectByName('frontWall').material.color,
-    'Right Wall': scene.getObjectByName('rightWall').material.color,
-    'Left Wall': scene.getObjectByName('leftWall').material.color,
-  }
-  colorCtrl.addColor(obj, 'Back Wall')
-  colorCtrl.addColor(obj, 'Front Wall')
-  colorCtrl.addColor(obj, 'Right Wall')
-  colorCtrl.addColor(obj, 'Left Wall')
+  const wallColorCtrl = rootGui.addFolder('Wall Color')
+  initWallGUI(scene, wallColorCtrl)
 
   // Controller for light
   const lightCtrl = rootGui.addFolder('Light')
@@ -524,6 +527,8 @@ const initGUI = (scene) => {
     .onChange((value) => {
       lightCtrlObj.changeLight(value)
     })
+
+  lightCtrlObj.init()
 
   // Controller for light position
   const positionCtrl = lightCtrl.addFolder('Position')
