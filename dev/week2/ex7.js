@@ -42,13 +42,18 @@ const roomParams = {
   roomDepth: 10,
 }
 
-const genSolid = (geometry, solidColor) => {
-  const meshMaterial = new THREE.MeshPhysicalMaterial({
-    color: solidColor,
-    roughness: 1.0,
-    metalness: 0,
-    reflectivity: 1,
-  })
+const genSolid = (geometry, solidColor, usePhyisical = false) => {
+  let meshMaterial
+  if (usePhyisical) {
+    meshMaterial = new THREE.MeshPhysicalMaterial({
+      color: solidColor,
+      roughness: 0.5,
+      metalness: 0.1,
+      reflectivity: 0.5,
+    })
+  } else {
+    meshMaterial = new THREE.MeshLambertMaterial({ color: solidColor })
+  }
   const solid = new THREE.Mesh(geometry, meshMaterial)
   solid.receiveShadow = true
   solid.castShadow = true
@@ -65,11 +70,11 @@ const createRoomBox = () => {
   const room = new THREE.Group()
 
   const floorGeometry = new THREE.BoxGeometry(roomWidth, wallWidth, roomDepth)
-  const floor = genSolid(floorGeometry, color.floor)
+  const floor = genSolid(floorGeometry, color.floor, true)
   room.add(floor)
 
   const ceilGeometry = floorGeometry.clone()
-  const ceil = genSolid(ceilGeometry, color.wall)
+  const ceil = genSolid(ceilGeometry, color.wall, true)
   ceil.translateY(roomHeight)
   room.add(ceil)
 
@@ -191,7 +196,7 @@ const createDesk = () => {
 
   // create desk Top
   const deskTopGeometry = new THREE.BoxGeometry(deskTopWidth, deskTopThickness, deskTopHeight)
-  const deskTop = genSolid(deskTopGeometry, color.wall)
+  const deskTop = genSolid(deskTopGeometry, color.wall, true)
   deskTop.translateY(legLength + deskTopThickness / 2)
   desk.add(deskTop)
 
