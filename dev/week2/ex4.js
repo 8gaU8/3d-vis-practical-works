@@ -487,7 +487,6 @@ const generateGUIfromParams = (params, rootGUI, paramCtrl) => {
       case 'choices':
         rootGUI.add(params[key], 'value', params[key].choiceMap).name(key).onChange(onChange)
         break
-      case 'euler':
       case 'color':
         rootGUI.addColor(params[key], 'value').name(key).onChange(onChange)
         break

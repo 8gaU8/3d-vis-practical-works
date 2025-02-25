@@ -509,8 +509,8 @@ const initLightGUI = (scene, rootGui) => {
   positionCtrl.add(lightCtrlObj, 'posZ', -10, 10)
 }
 
-const shadowGuiFactory = (light, lightGUI, scene, enableCamera = false) => {
-  const onChange = (value) => {
+const shadowGuiFactory = (light, lightGUI, enableCamera = false) => {
+  const onChange = () => {
     light.target.updateMatrixWorld()
     light.shadow.camera.updateProjectionMatrix()
   }
@@ -552,15 +552,15 @@ const initShadowGUI = (scene, rootGUI) => {
 
   // directional light gui
   const directionalLightGUI = rootGUI.addFolder('Directional Light')
-  shadowGuiFactory(directionalLight, directionalLightGUI, scene, true)
+  shadowGuiFactory(directionalLight, directionalLightGUI, true)
 
   // spot light gui
   const spotLightGUI = rootGUI.addFolder('Spot Light')
-  shadowGuiFactory(spotLight, spotLightGUI, scene, true)
+  shadowGuiFactory(spotLight, spotLightGUI, true)
 
   // point light gui
   const pointLightGUI = rootGUI.addFolder('Point Light')
-  shadowGuiFactory(pointLight, pointLightGUI, scene, false)
+  shadowGuiFactory(pointLight, pointLightGUI, false)
 }
 
 const initGUI = (scene) => {
