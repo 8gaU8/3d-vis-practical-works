@@ -1,10 +1,15 @@
-import GUI from 'lil-gui'
+// import GUI from 'lil-gui'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import { VRButton } from 'three/addons/webxr/VRButton.js'
 import { RectAreaLightHelper } from 'three/addons/helpers/RectAreaLightHelper.js'
 import { VertexNormalsHelper } from 'three/addons/helpers/VertexNormalsHelper.js'
 import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js'
+import { HTMLMesh } from 'three/addons/interactive/HTMLMesh.js'
+import { InteractiveGroup } from 'three/addons/interactive/InteractiveGroup.js'
+import { XRControllerModelFactory } from 'three/addons/webxr/XRControllerModelFactory.js'
+
+import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
 
 // parameters
 
@@ -419,28 +424,89 @@ class WallLightManager {
   }
 }
 
-const initWallGUI = (scene, rootGUI, wallLightManager) => {
-  const onChange = () => {
-    wallLightManager.updateWallLightColor()
+const onRGBChangeFactory = (wall, mng, rgb) => {
+  const onChange = (value) => {
+    const { r, g, b } = wall.material.color
+    const originalRGB = { r: r, g: g, b: b }
+    originalRGB[rgb] = value
+    wall.material.color = new THREE.Color(originalRGB.r, originalRGB.g, originalRGB.b)
+    mng.updateWallLightColor()
   }
-  const obj = {
-    backWall: scene.getObjectByName('backWall').material.color,
-    frontWall: scene.getObjectByName('frontWall').material.color,
-    rightWall: scene.getObjectByName('rightWall').material.color,
-    leftWall: scene.getObjectByName('leftWall').material.color,
-  }
-
-  rootGUI.addColor(obj, 'backWall').onChange(onChange)
-  rootGUI.addColor(obj, 'frontWall').onChange(onChange)
-  rootGUI.addColor(obj, 'rightWall').onChange(onChange)
-  rootGUI.addColor(obj, 'leftWall').onChange(onChange)
+  return onChange
 }
 
-const initGUI = (scene, wallLightManager) => {
-  // root
-  const rootGui = new GUI()
-  // wall gui
-  initWallGUI(scene, rootGui, wallLightManager)
+const genGUI = (gui, mng, wall) => {
+  gui.add({ R: 1 }, 'R', 0, 1).onChange(onRGBChangeFactory(wall, mng, 'r'))
+  gui.add({ G: 1 }, 'G', 0, 1).onChange(onRGBChangeFactory(wall, mng, 'g'))
+  gui.add({ B: 1 }, 'B', 0, 1).onChange(onRGBChangeFactory(wall, mng, 'b'))
+}
+
+const initControllers = (scene, renderer) => {
+  const geometry = new THREE.BufferGeometry()
+  geometry.setFromPoints([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, -5)])
+
+  const controller1 = renderer.xr.getController(0)
+  controller1.add(new THREE.Line(geometry))
+  scene.add(controller1)
+
+  const controller2 = renderer.xr.getController(1)
+  controller2.add(new THREE.Line(geometry))
+  scene.add(controller2)
+
+  const controllerModelFactory = new XRControllerModelFactory()
+
+  const controllerGrip1 = renderer.xr.getControllerGrip(0)
+  controllerGrip1.add(controllerModelFactory.createControllerModel(controllerGrip1))
+  scene.add(controllerGrip1)
+
+  const controllerGrip2 = renderer.xr.getControllerGrip(1)
+  controllerGrip2.add(controllerModelFactory.createControllerModel(controllerGrip2))
+  scene.add(controllerGrip2)
+  return { controller1, controller2 }
+}
+
+const initWallGUI = (scene, wallLightManager) => {
+  // define gui
+  const gui = new GUI({ width: 300 })
+  const backWall = scene.getObjectByName('backWall')
+  const frontWall = scene.getObjectByName('frontWall')
+  const rightWall = scene.getObjectByName('rightWall')
+  const leftWall = scene.getObjectByName('leftWall')
+
+  const backWallGUI = gui.addFolder('Back Wall')
+  genGUI(backWallGUI, wallLightManager, backWall)
+  const frontWallGUI = gui.addFolder('Front Wall')
+  genGUI(frontWallGUI, wallLightManager, frontWall)
+  const rightWallGUI = gui.addFolder('Right Wall')
+  genGUI(rightWallGUI, wallLightManager, rightWall)
+  const leftWallGUI = gui.addFolder('Left Wall')
+  genGUI(leftWallGUI, wallLightManager, leftWall)
+  gui.domElement.style.visibility = 'hidden'
+  return gui
+}
+
+const initInteractiveGroup = (scene, renderer, camera, controllers, gui) => {
+  const { controller1, controller2 } = controllers
+  const group = new InteractiveGroup()
+  group.listenToPointerEvents(renderer, camera)
+  group.listenToXRControllerEvents(controller1)
+  group.listenToXRControllerEvents(controller2)
+  scene.add(group)
+
+  const mesh = new HTMLMesh(gui.domElement)
+  mesh.position.x = -0.75
+  mesh.position.y = 1.5
+  mesh.position.z = -0.5
+  mesh.rotation.y = Math.PI / 4
+  mesh.scale.setScalar(2)
+  group.add(mesh)
+}
+
+const initXrGUI = (scene, renderer, camera, wallLightManager) => {
+  // define controllers
+  const controllers = initControllers(scene, renderer)
+  const gui = initWallGUI(scene, wallLightManager)
+  initInteractiveGroup(scene, renderer, camera, controllers, gui)
 }
 
 const drawHelper = (scene) => {
@@ -532,7 +598,7 @@ const main = () => {
   const controls = new OrbitControls(camera, renderer.domElement)
   controls.enabled = true
 
-  initGUI(scene, new WallLightManager(scene))
+  initXrGUI(scene, renderer, camera, new WallLightManager(scene))
 
   if (DEBUG_MODE) drawHelper(scene)
   const render = () => {
