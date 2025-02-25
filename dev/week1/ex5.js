@@ -276,7 +276,7 @@ const drawHelper = (scene) => {
 
 const initLight = (scene) => {
   const ambientLight = new THREE.AmbientLight(0xffffff, 0.5)
-  ambientLight.castShadow = true
+  // ambientLight.castShadow = true
   scene.add(ambientLight)
 
   const light = new THREE.DirectionalLight(0xffffff, 1.4)
@@ -331,6 +331,7 @@ const initRobot = (scene) => {
 
 const main = (DEBUG_MODE = false) => {
   const scene = new THREE.Scene()
+  scene.add(new THREE.AxesHelper(1000))
 
   const renderer = initRenderer()
   initFloor(scene)
