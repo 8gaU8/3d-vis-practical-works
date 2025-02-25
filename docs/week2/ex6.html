@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, user-scalable=yes"
     />
-    <title>Practical works week2 Exercise 3</title>
+    <title>Practical works week2 Exercise 6</title>
     <style>
       html,
       body {
@@ -81,38 +81,6 @@
         roomDepth: 10,
       };
 
-      const initCamera = (cameraType) => {
-        if (cameraType === THREE.OrthographicCamera) {
-          const frustumSize = 10;
-          const aspect = window.innerWidth / window.innerHeight;
-          const camera = new THREE.OrthographicCamera(
-            (frustumSize * aspect) / -2,
-            (frustumSize * aspect) / 2,
-            frustumSize / 2,
-            frustumSize / -2,
-            0.1,
-            2000,
-          );
-          camera.rotation.x = -Math.PI / 3.5;
-          camera.position.y = 10;
-          camera.position.z = 100;
-          return camera;
-        }
-        if (cameraType === THREE.PerspectiveCamera) {
-          const camera = new THREE.PerspectiveCamera(
-            50,
-            window.innerWidth / window.innerHeight,
-            0.1,
-            1000,
-          );
-          camera.rotation.x = -Math.PI / 3.5;
-          camera.position.y = 2;
-          camera.position.z = 5;
-          return camera;
-        }
-        return null;
-      };
-
       const genSolid = (geometry, solidColor) => {
         const meshMaterial = new THREE.MeshPhysicalMaterial({
           color: solidColor,
@@ -125,6 +93,9 @@
         solid.castShadow = true;
         return solid;
       };
+
+      // ROOM
+      // -------------------------------
 
       const createRoomBox = () => {
         // initialize room
@@ -185,80 +156,83 @@
         return room;
       };
 
-      const createArcLegGeometry = (archHeight, archWidth) => {
-        // lower part of leg of desk
-        // Arc curve
-        const curve = new THREE.CatmullRomCurve3([
-          new THREE.Vector3(0, 0, -archWidth),
-          new THREE.Vector3(0, archHeight, 0),
-          new THREE.Vector3(0, 0, archWidth),
-        ]);
+      // functions for desk parts
+      const createDeskFuncs = {
+        createArcLegGeometry: (archHeight, archWidth) => {
+          // lower part of leg of desk
+          // Arc curve
+          const curve = new THREE.CatmullRomCurve3([
+            new THREE.Vector3(0, 0, -archWidth),
+            new THREE.Vector3(0, archHeight, 0),
+            new THREE.Vector3(0, 0, archWidth),
+          ]);
 
-        // draw ellipse
-        const ellipseShape = new THREE.Shape();
-        const rx = 0.05; // radius of x-axis
-        const ry = 0.015; // radius of y-axis
-        const segments = 32;
-        for (let i = 0; i < segments; i += 1) {
-          const theta = (i / segments) * Math.PI * 2;
-          // formula of ellipse: x = rx * cos(theta), y = ry * sin(theta)
-          const x = rx * Math.cos(theta);
-          const y = ry * Math.sin(theta);
+          // draw ellipse
+          const ellipseShape = new THREE.Shape();
+          const rx = 0.05; // radius of x-axis
+          const ry = 0.015; // radius of y-axis
+          const segments = 32;
+          for (let i = 0; i < segments; i += 1) {
+            const theta = (i / segments) * Math.PI * 2;
+            // formula of ellipse: x = rx * cos(theta), y = ry * sin(theta)
+            const x = rx * Math.cos(theta);
+            const y = ry * Math.sin(theta);
 
-          if (i === 0) {
-            // only start point
-            ellipseShape.moveTo(x, y);
-          } else {
-            // other points
-            ellipseShape.lineTo(x, y);
+            if (i === 0) {
+              // only start point
+              ellipseShape.moveTo(x, y);
+            } else {
+              // other points
+              ellipseShape.lineTo(x, y);
+            }
           }
-        }
-        ellipseShape.closePath();
+          ellipseShape.closePath();
 
-        const extrudeSettings = {
-          steps: 20,
-          depth: 20,
-          extrudePath: curve,
-        };
+          const extrudeSettings = {
+            steps: 20,
+            depth: 20,
+            extrudePath: curve,
+          };
 
-        const arcLegGeometry = new THREE.ExtrudeGeometry(
-          ellipseShape,
-          extrudeSettings,
-        );
-        return arcLegGeometry;
-      };
+          const arcLegGeometry = new THREE.ExtrudeGeometry(
+            ellipseShape,
+            extrudeSettings,
+          );
+          return arcLegGeometry;
+        },
 
-      const createWheel = (wheelRadius) => {
-        // wheel for desks
-        const axisRadius = wheelRadius / 1.5;
-        const axisThickness = 0.02;
-        const axisWheelGeometry = new THREE.CylinderGeometry(
-          axisRadius,
-          axisRadius,
-          axisThickness,
-          16,
-        );
-        axisWheelGeometry.rotateZ(Math.PI / 2);
+        createWheel: (wheelRadius) => {
+          // wheel for desks
+          const axisRadius = wheelRadius / 1.5;
+          const axisThickness = 0.02;
+          const axisWheelGeometry = new THREE.CylinderGeometry(
+            axisRadius,
+            axisRadius,
+            axisThickness,
+            16,
+          );
+          axisWheelGeometry.rotateZ(Math.PI / 2);
 
-        const axisWheel = genSolid(axisWheelGeometry, color.black);
+          const axisWheel = genSolid(axisWheelGeometry, color.black);
 
-        const wheelThickness = 0.02;
-        const wheelGeometry = new THREE.CylinderGeometry(
-          wheelRadius,
-          wheelRadius,
-          wheelThickness,
-          16,
-        );
-        wheelGeometry.rotateZ(Math.PI / 2);
+          const wheelThickness = 0.02;
+          const wheelGeometry = new THREE.CylinderGeometry(
+            wheelRadius,
+            wheelRadius,
+            wheelThickness,
+            16,
+          );
+          wheelGeometry.rotateZ(Math.PI / 2);
 
-        const wheel1 = genSolid(wheelGeometry, color.gray);
-        wheel1.translateX(-wheelThickness);
-        const wheel2 = genSolid(wheelGeometry, color.gray);
-        wheel2.translateX(wheelThickness);
+          const wheel1 = genSolid(wheelGeometry, color.gray);
+          wheel1.translateX(-wheelThickness);
+          const wheel2 = genSolid(wheelGeometry, color.gray);
+          wheel2.translateX(wheelThickness);
 
-        axisWheel.add(wheel1);
-        axisWheel.add(wheel2);
-        return axisWheel;
+          axisWheel.add(wheel1);
+          axisWheel.add(wheel2);
+          return axisWheel;
+        },
       };
 
       const createDesk = () => {
@@ -274,6 +248,8 @@
           wheelRadius,
           wheelPosZ,
         } = deskParams;
+
+        const { createArcLegGeometry, createWheel } = createDeskFuncs;
 
         const desk = new THREE.Group();
 
@@ -334,32 +310,13 @@
         return desk;
       };
 
-      const drawHelper = (scene) => {
-        // for debugging
-        scene.add(new THREE.AxesHelper(1000));
-
-        scene.traverse((object) => {
-          if (object instanceof THREE.Mesh) {
-            const helper = new VertexNormalsHelper(object, 1, 0x00ff00);
-            scene.add(helper);
-          }
-        });
-      };
-
-      const initRenderer = () => {
-        const canvas = document.querySelector("#c");
-        const renderer = new THREE.WebGLRenderer({
-          antialias: true,
-          canvas,
-        });
-        renderer.shadowMap.enabled = true;
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        return renderer;
-      };
-
       const makeCone = () => {
-        const geometry = new THREE.ConeGeometry(0.1, 0.4, 32);
-        const material = new THREE.MeshLambertMaterial();
+        const geometry = new THREE.ConeGeometry(0.1, 0.4, 24);
+        const material = new THREE.MeshLambertMaterial({
+          color: color.yellow,
+          emissive: 0x0000ff,
+          emissiveIntensity: 0.1,
+        });
         const cone = new THREE.Mesh(geometry, material);
         cone.translateY(0.2);
         cone.receiveShadow = true;
@@ -369,7 +326,11 @@
 
       const makeCylinder = () => {
         const geometry = new THREE.CylinderGeometry(0.1, 0.1, 0.3, 32);
-        const material = new THREE.MeshPhongMaterial();
+        const material = new THREE.MeshPhongMaterial({
+          color: color.green,
+          specular: 0x00ff00,
+          shininess: 30,
+        });
         const cylinder = new THREE.Mesh(geometry, material);
         cylinder.translateY(0.15);
         cylinder.receiveShadow = true;
@@ -379,7 +340,15 @@
 
       const makeSphere = () => {
         const geometry = new THREE.SphereGeometry(0.1, 32, 32);
-        const material = new THREE.MeshPhysicalMaterial();
+        const material = new THREE.MeshPhysicalMaterial({
+          color: color.red,
+          roughness: 0.1,
+          clearcoat: 1,
+          clearcoatRoughness: 0.4,
+          sheen: 1,
+          sheenRoughness: 0.5,
+          sheenColor: new THREE.Color(0x0000ff),
+        });
         const sphere = new THREE.Mesh(geometry, material);
         sphere.translateY(0.1);
         sphere.receiveShadow = true;
@@ -387,9 +356,10 @@
         return sphere;
       };
 
-      const initRoom = (scene) => {
+      const initRoom = () => {
+        const allObjectsInRoom = new THREE.Group();
         const room = createRoomBox();
-        scene.add(room);
+        allObjectsInRoom.add(room);
 
         const createDeskGroup = (name, nbDesk = 2) => {
           const deskGroup = new THREE.Group();
@@ -412,41 +382,42 @@
 
         const frontDeskGroup = createDeskGroup("Back", 2);
         frontDeskGroup.translateZ(2);
-        scene.add(frontDeskGroup);
+        allObjectsInRoom.add(frontDeskGroup);
 
         const leftDeskGroup = createDeskGroup("Left", 4);
         leftDeskGroup.rotateY(Math.PI / 2);
         leftDeskGroup.translateZ(0.3);
         leftDeskGroup.translateX(-1.6);
-        scene.add(leftDeskGroup);
+        allObjectsInRoom.add(leftDeskGroup);
 
         const rightDeskGroup = createDeskGroup("Right", 4);
         rightDeskGroup.rotateY(Math.PI / 2);
         rightDeskGroup.translateZ(3.9);
         rightDeskGroup.translateX(-1.6);
-        scene.add(rightDeskGroup);
+        allObjectsInRoom.add(rightDeskGroup);
 
         const { deskTopThickness, legLength, arcHeight, wheelRadius } =
           deskParams;
 
         const ypos = legLength + deskTopThickness + arcHeight + wheelRadius * 2;
         const cone = makeCone();
-        cone.name = "Cone on Desk6";
+        cone.name = "Lambert Cone";
         cone.translateY(ypos);
         cone.translateX(0.5);
         frontDeskGroup.add(cone);
 
         const cylinder = makeCylinder();
-        cylinder.name = "Cylinder on rightDeskGroup";
+        cylinder.name = "Phong Cylinder";
         cylinder.translateY(ypos);
         cylinder.translateZ(0.2);
         frontDeskGroup.add(cylinder);
 
         const sphere = makeSphere();
-        sphere.name = "Sphere on rightDeskGroup";
+        sphere.name = "Physical Sphere";
         sphere.translateY(ypos);
         sphere.translateX(-0.5);
         frontDeskGroup.add(sphere);
+        return allObjectsInRoom;
       };
 
       class LightController {
@@ -457,18 +428,26 @@
             "Spot Light",
             "Hemisphere Light",
           ];
+
           this.scene = scene;
           this.rootGui = rootGui;
 
           this.directional = new THREE.DirectionalLight(0xffffff, 1);
+          this.directional.name = "Directional Light";
+
           this.point = new THREE.PointLight(0xffffff, 1, 10);
+          this.point.name = "Point Light";
+
           this.spot = new THREE.SpotLight(0xffffff, 1);
+          this.spot.name = "Spot Light";
+
           this.hemisphere = new THREE.HemisphereLight(0xffffbb, 0x080820, 1);
+          this.hemisphere.name = "Hemisphere Light";
         }
 
         init() {
           this.light = this.directional;
-          this.initLight();
+          this.changeLight("Directional Light");
           this.initGUI();
           this.changeGUI("Directional Light");
 
@@ -477,21 +456,27 @@
           this.posZ = 0;
         }
 
-        initLight() {
-          if (!(this.light instanceof THREE.HemisphereLight)) {
-            this.light.shadow.camera.left = (-roomParams.roomWidth / 2) * 1.5;
-            this.light.shadow.camera.right = (roomParams.roomWidth / 2) * 1.5;
-            this.light.shadow.camera.top = (roomParams.roomDepth / 2) * 1.5;
-            this.light.shadow.camera.bottom = (-roomParams.roomDepth / 2) * 1.5;
+        initLight(light) {
+          if (!(light instanceof THREE.HemisphereLight)) {
+            light.shadow.camera.left = (-roomParams.roomWidth / 2) * 1.5;
+            light.shadow.camera.right = (roomParams.roomWidth / 2) * 1.5;
+            light.shadow.camera.top = (roomParams.roomDepth / 2) * 1.5;
+            light.shadow.camera.bottom = (-roomParams.roomDepth / 2) * 1.5;
 
-            this.light.shadow.mapSize.width = 2048 * 2;
-            this.light.shadow.mapSize.height = 2048;
+            light.shadow.mapSize.width = 2048 * 2;
+            light.shadow.mapSize.height = 2048;
 
-            this.light.castShadow = true;
+            light.castShadow = true;
           }
-          this.light.position.y = 2;
-          this.light.name = "light";
-          this.scene.add(this.light);
+          light.position.y = 2;
+          this.scene.add(light);
+        }
+
+        initAllLight() {
+          this.initLight(this.directional);
+          this.initLight(this.point);
+          this.initLight(this.spot);
+          this.initLight(this.hemisphere);
         }
 
         initGUI() {
@@ -521,6 +506,7 @@
           hemisphereLightCtrl.add(this.hemisphere, "intensity", 0, 10);
         }
 
+        // --- position ---
         get posX() {
           return this.light.position.x;
         }
@@ -549,59 +535,44 @@
           this.lightNames.forEach((lightName) => {
             this.rootGui.children.forEach((gui) => {
               if (gui._title === lightName) {
-                if (lightName === lightType) {
-                  gui.show();
-                } else {
-                  gui.hide();
-                }
+                if (lightName === lightType) gui.show();
+                else gui.hide();
               }
             });
           });
         }
 
-        changeLight(lightType) {
-          if (lightType === "Directional Light") {
-            this.light = this.directional;
-          } else if (lightType === "Point Light") {
-            this.light = this.point;
-          } else if (lightType === "Spot Light") {
-            this.light = this.spot;
-          } else if (lightType === "Hemisphere Light") {
-            this.light = this.hemisphere;
-          } else {
-            throw new Error("Invalid light type");
-          }
+        enableOneLight(lightType) {
+          const lightTypeMap = {
+            "Directional Light": this.directional,
+            "Point Light": this.point,
+            "Spot Light": this.spot,
+            "Hemisphere Light": this.hemisphere,
+          };
+          // raise error if lightType is not in lightTypeMap
+          if (!Object.keys(lightTypeMap).includes(lightType))
+            throw new Error(`Invalid light type: ${lightType}`);
 
-          // remove old one
-          this.scene.remove(this.scene.getObjectByName("light"));
-          // add new one
-          this.initLight();
+          Object.keys(lightTypeMap).forEach((key) => {
+            if (key === lightType) {
+              // console.log(lightType)
+              lightTypeMap[key].visible = true;
+              this.light = lightTypeMap[key];
+            } else {
+              lightTypeMap[key].visible = false;
+            }
+          });
+          console.log("change to", this.light);
+        }
+
+        changeLight(lightType) {
+          this.enableOneLight(lightType);
+          this.initAllLight();
           this.changeGUI(lightType);
         }
       }
 
-      const initWallGUI = (scene, rootGUI) => {
-        const obj = {
-          backWall: scene.getObjectByName("backWall").material.color,
-          frontWall: scene.getObjectByName("frontWall").material.color,
-          rightWall: scene.getObjectByName("rightWall").material.color,
-          leftWall: scene.getObjectByName("leftWall").material.color,
-        };
-
-        rootGUI.addColor(obj, "backWall");
-        rootGUI.addColor(obj, "frontWall");
-        rootGUI.addColor(obj, "rightWall");
-        rootGUI.addColor(obj, "leftWall");
-      };
-
-      const initGUI = (scene) => {
-        // root
-        const rootGui = new GUI();
-
-        // Controller for wall color
-        const wallColorCtrl = rootGui.addFolder("Wall Color");
-        initWallGUI(scene, wallColorCtrl);
-
+      const initLightGUI = (scene, rootGui) => {
         // Controller for light
         const lightCtrl = rootGui.addFolder("Light");
         const lightCtrlObj = new LightController(scene, lightCtrl);
@@ -620,24 +591,149 @@
         positionCtrl.add(lightCtrlObj, "posZ", -10, 10);
       };
 
+      const shadowGuiFactory = (
+        light,
+        lightGUI,
+        scene,
+        enableCamera = false,
+      ) => {
+        const onChange = (value) => {
+          light.target.updateMatrixWorld();
+          light.shadow.camera.updateProjectionMatrix();
+        };
+        const mapSizeOnChange = (value) => {
+          if (light.visible) {
+            light.shadow.mapSize.width = value;
+            light.shadow.mapSize.height = value;
+            light.shadow.map.setSize(value, value);
+          }
+        };
+        lightGUI.add(light, "castShadow");
+        lightGUI.add(light.shadow, "bias", -0.01, 0.01);
+        lightGUI.add(light.shadow, "normalBias", -0.01, 0.01);
+        lightGUI.add(light.shadow, "blurSamples", 0, 10);
+        lightGUI.add(light.shadow, "intensity", 0, 1);
+        lightGUI.add(light.shadow, "radius", 0, 10);
+        if (enableCamera) {
+          lightGUI.add(light.shadow.camera, "left", -10, 10).onChange(onChange);
+          lightGUI
+            .add(light.shadow.camera, "right", -10, 10)
+            .onChange(onChange);
+          lightGUI.add(light.shadow.camera, "top", -10, 10).onChange(onChange);
+          lightGUI
+            .add(light.shadow.camera, "bottom", -10, 10)
+            .onChange(onChange);
+          lightGUI.add(light.shadow.camera, "near", 0, 10).onChange(onChange);
+          lightGUI.add(light.shadow.camera, "far", 0, 10).onChange(onChange);
+        }
+        lightGUI
+          .add({ mapSize: 512 }, "mapSize", 0, 4096)
+          .onChange(mapSizeOnChange);
+      };
+
+      // GUI
+      // -------------------------------
+      /**
+       * function to initialize material GUI
+       * @param {THREE.Scene} scene
+       * @param {GUI} rootGUI
+       */
+      const initShadowGUI = (scene, rootGUI) => {
+        const directionalLight = scene.getObjectByName("Directional Light");
+        const spotLight = scene.getObjectByName("Spot Light");
+        const pointLight = scene.getObjectByName("Point Light");
+
+        // directional light gui
+        const directionalLightGUI = rootGUI.addFolder("Directional Light");
+        shadowGuiFactory(directionalLight, directionalLightGUI, scene, true);
+
+        // spot light gui
+        const spotLightGUI = rootGUI.addFolder("Spot Light");
+        shadowGuiFactory(spotLight, spotLightGUI, scene, true);
+
+        // point light gui
+        const pointLightGUI = rootGUI.addFolder("Point Light");
+        shadowGuiFactory(pointLight, pointLightGUI, scene, false);
+      };
+
+      const initGUI = (scene) => {
+        // root
+        const rootGui = new GUI();
+        initLightGUI(scene, rootGui);
+        initShadowGUI(scene, rootGui);
+      };
+
+      const drawHelper = (scene) => {
+        // for debugging
+        scene.add(new THREE.AxesHelper(1000));
+
+        scene.traverse((object) => {
+          if (object instanceof THREE.Mesh) {
+            const helper = new VertexNormalsHelper(object, 1, 0x00ff00);
+            scene.add(helper);
+          }
+        });
+      };
+
+      const initRenderer = () => {
+        const canvas = document.querySelector("#c");
+        const renderer = new THREE.WebGLRenderer({
+          antialias: true,
+          canvas,
+        });
+        renderer.shadowMap.enabled = true;
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        return renderer;
+      };
+
+      const initCamera = (cameraType) => {
+        if (cameraType === THREE.OrthographicCamera) {
+          const frustumSize = 3;
+          const aspect = window.innerWidth / window.innerHeight;
+          const camera = new THREE.OrthographicCamera(
+            (frustumSize * aspect) / -2,
+            (frustumSize * aspect) / 2,
+            frustumSize / 2,
+            frustumSize / -2,
+            0.001,
+            100,
+          );
+          camera.rotation.x = -Math.PI / 3.5;
+          camera.position.y = 2;
+          camera.position.z = 5;
+          return camera;
+        }
+        if (cameraType === THREE.PerspectiveCamera) {
+          const camera = new THREE.PerspectiveCamera(
+            50,
+            window.innerWidth / window.innerHeight,
+            0.1,
+            1000,
+          );
+          camera.rotation.x = -Math.PI / 3.5;
+          camera.position.y = 2;
+          camera.position.z = 5;
+          return camera;
+        }
+        return null;
+      };
+
       const main = () => {
-        const scene = new THREE.Scene();
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
-        ambientLight.name = "ambientLight";
-        scene.add(ambientLight);
-
         const renderer = initRenderer();
-        initRoom(scene);
-
+        const scene = new THREE.Scene();
+        const room = initRoom();
+        scene.add(room);
+        // initLight(scene)
         if (DEBUG_MODE) drawHelper(scene);
 
         const camera = initCamera(THREE.PerspectiveCamera);
         scene.add(camera);
+        renderer.render(scene, camera);
+
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.enabled = true;
 
         initGUI(scene);
-
         const render = () => {
           controls.update();
           renderer.render(scene, camera);
