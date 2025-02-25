@@ -463,8 +463,7 @@ class Param {
   }
 }
 
-/**
- * function to generate GUI from parameters
+/** * function to generate GUI from parameters
  * @param {Object.<string, Param>} params
  * @param {GUI} rootGUI
  * @param {MaterialParameterController} paramCtrl
@@ -827,7 +826,7 @@ const initLight = (scene) => {
   const spotLight = new THREE.SpotLight(0xffffff, 5, 10, 0.8, 0.24, 0.45)
   spotLight.position.set(1.36, 2.68, -1.26)
   spotLight.castShadow = true
-  const c = 1.5
+  const c = 1
   spotLight.shadow.camera.left = (-roomParams.roomWidth / 2) * c
   spotLight.shadow.camera.right = (roomParams.roomWidth / 2) * c
   spotLight.shadow.camera.top = (roomParams.roomDepth / 2) * c

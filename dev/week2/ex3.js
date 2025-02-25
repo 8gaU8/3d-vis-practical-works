@@ -497,6 +497,7 @@ class LightController {
     this.changeGUI(lightType)
   }
 }
+
 const initWallGUI = (scene, rootGUI) => {
   const obj = {
     backWall: scene.getObjectByName('backWall').material.color,
